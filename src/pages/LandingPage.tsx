@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import nefi001 from '../assets/img-001.png';
 import { 
   Smartphone, 
   Users, 
@@ -16,7 +17,7 @@ import {
 // Configurable WhatsApp number
 const WHATSAPP_NUMBER = "+1234567890"; // Change this to your desired number
 
-const LandingPage = () => {
+const LandingPage: React.FC = () => {
   const [openFaq, setOpenFaq] = React.useState<number | null>(null);
 
   const toggleFaq = (index: number) => {
@@ -139,7 +140,7 @@ const LandingPage = () => {
       name: 'María González',
       role: 'Fotógrafa Freelance',
       image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-      quote: 'NEFIha revolucionado la forma en que comparto mi portafolio con clientes potenciales. Ahora solo acerco mi tarjeta a su teléfono y pueden ver todo mi trabajo al instante.'
+      quote: 'NEFI ha revolucionado la forma en que comparto mi portafolio con clientes potenciales. Ahora solo acerco mi tarjeta a su teléfono y pueden ver todo mi trabajo al instante.'
     },
     {
       name: 'Carlos Rodríguez',
@@ -157,7 +158,7 @@ const LandingPage = () => {
 
   return (
     <div className="bg-[#FFFFFF] font-sans">
-      {/* Hero Section - Adjusted padding */}
+      {/* Hero Section */}
       <section className="relative bg-[#0A2640] text-[#FFFFFF]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 md:pt-24 lg:pt-32 pb-12 sm:pb-16 md:pb-20 lg:pb-24">
           <div className="flex flex-col md:flex-row md:items-center md:space-x-12">
@@ -185,7 +186,7 @@ const LandingPage = () => {
             </div>
             <div className="md:w-1/2">
               <img 
-                src="https://cdn0030.qrcodechimp.com/blog/wp-content/uploads/2024/05/use_of_-NFC_business_cards_on_android-1.png" 
+                src={nefi001}
                 alt="Tarjeta NFC y smartphone" 
                 className="w-full h-auto rounded-lg shadow-xl"
               />
@@ -428,7 +429,7 @@ const LandingPage = () => {
       <section className="py-10 sm:py-12 md:py-16 lg:py-20 bg-[#0A2640] text-[#FFFFFF]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-4 font-montserrat">
-            Listo para Comenzar?
+            ¿Listo para Comenzar?
           </h2>
           <p className="text-lg sm:text-xl md:text-2xl mb-4 sm:mb-6 max-w-2xl sm:max-w-3xl mx-auto font-lemon">
             Únete a miles de profesionales que ya están utilizando NEFI para mejorar su presencia digital.

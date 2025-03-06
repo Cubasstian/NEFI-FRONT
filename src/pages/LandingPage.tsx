@@ -24,6 +24,7 @@ const LandingPage: React.FC = () => {
     setOpenFaq(openFaq === index ? null : index);
   };
 
+  // Features array
   const features = [
     {
       icon: <Smartphone className="h-10 w-10 text-[#00C2FF]" />,
@@ -31,14 +32,14 @@ const LandingPage: React.FC = () => {
       description: 'Comparte tu perfil digital con solo acercar tu tarjeta a cualquier smartphone compatible con NFC.'
     },
     {
-      icon: <Users className="h-10 w-10 text-[#00C2FF]" />,
-      title: 'Perfiles Personalizables',
-      description: 'Personaliza tu perfil con tus datos, redes sociales, fotos y toda la información que desees compartir.'
-    },
-    {
       icon: <Share2 className="h-10 w-10 text-[#00C2FF]" />,
       title: 'Fácil de Compartir',
       description: 'Comparte tu perfil mediante URL, código QR o directamente con tu tarjeta NFC.'
+    },
+    {
+      icon: <Users className="h-10 w-10 text-[#00C2FF]" />,
+      title: 'Perfiles Personalizables',
+      description: 'Personaliza tu perfil con tus datos, redes sociales, fotos y toda la información que desees compartir.'
     },
     {
       icon: <BarChart className="h-10 w-10 text-[#00C2FF]" />,
@@ -48,7 +49,7 @@ const LandingPage: React.FC = () => {
     {
       icon: <Shield className="h-10 w-10 text-[#00C2FF]" />,
       title: 'Seguridad',
-      description: 'Tus datos están seguros con nosotros. Controla qué información quieres compartir.'
+      description: 'Tus datos están protegidos. Tú decides qué datos compartir y con quién.'
     },
     {
       icon: <Zap className="h-10 w-10 text-[#00C2FF]" />,
@@ -60,50 +61,62 @@ const LandingPage: React.FC = () => {
   const plans = [
     {
       name: 'Gratuito',
-      price: '0',
+      price: '$0/MES',
       features: [
-        { text: 'Perfil digital básico', included: true },
-        { text: 'URL personalizada', included: true },
-        { text: 'Hasta 5 enlaces de redes sociales', included: true },
-        { text: 'Estadísticas básicas', included: true },
-        { text: 'Tarjeta NFC', included: false },
-        { text: 'Diseños premium', included: false },
-        { text: 'Soporte prioritario', included: false },
-        { text: 'Múltiples perfiles', included: false }
+        { text: 'PERFIL DIGITAL BÁSICO.', included: true },
+        { text: 'URL PERSONALIZADA.', included: true },
+        { text: 'HASTA 5 ENLACES DE REDES SOCIALES.', included: true },
+        { text: 'ESTADÍSTICAS.', included: false },
+        { text: 'DISEÑO PREMIUM.', included: false },
+        { text: 'SOPORTE PRIORITARIO.', included: false },
+        { text: 'MÚLTIPLE PERFILES.', included: false }
       ],
-      cta: 'Comenzar Gratis',
+      cta: 'COMENZAR GRATIS',
       popular: false
     },
     {
       name: 'Premium',
-      price: '9.99',
+      price: '$49.999/MES',
       features: [
-        { text: 'Perfil digital completo', included: true },
-        { text: 'URL personalizada', included: true },
-        { text: 'Enlaces ilimitados', included: true },
-        { text: 'Estadísticas avanzadas', included: true },
-        { text: 'Tarjeta NFC', included: true },
-        { text: 'Diseños premium', included: true },
-        { text: 'Soporte prioritario', included: true },
-        { text: 'Múltiples perfiles', included: false }
+        { text: 'PERFIL DIGITAL COMPLETO.', included: true },
+        { text: 'URL PERSONALIZADA.', included: true },
+        { text: 'ENLACES ILIMITADOS.', included: true },
+        { text: 'ESTADÍSTICAS AVANZADAS.', included: true },
+        { text: 'DISEÑO PREMIUM.', included: true },
+        { text: 'SOPORTE PRIORITARIO.', included: true },
+        { text: 'MÚLTIPLE PERFILES.', included: false }
       ],
-      cta: 'Obtener Premium',
+      cta: 'OBTENER PREMIUM',
       popular: true
     },
     {
-      name: 'Empresarial',
-      price: '29.99',
+      name: 'Micro Empresa',
+      price: '$120.000/MES',
       features: [
-        { text: 'Perfiles digitales completos', included: true },
-        { text: 'URLs personalizadas', included: true },
-        { text: 'Enlaces ilimitados', included: true },
-        { text: 'Estadísticas avanzadas', included: true },
-        { text: 'Tarjetas NFC (5 unidades)', included: true },
-        { text: 'Diseños premium y personalizados', included: true },
-        { text: 'Soporte prioritario 24/7', included: true },
-        { text: 'Hasta 10 perfiles', included: true }
+        { text: 'PERFIL DIGITAL COMPLETO.', included: true },
+        { text: 'URL PERSONALIZADA.', included: true },
+        { text: 'ENLACES ILIMITADOS.', included: true },
+        { text: 'ESTADÍSTICAS AVANZADAS.', included: true },
+        { text: 'DISEÑOS PREMIUM Y.', included: true },
+        { text: 'SOPORTE PRIORITARIO.', included: true },
+        { text: 'HASTA 10 PERFILES.', included: true }
       ],
-      cta: 'Contactar Ventas',
+      cta: 'CONTACTAR CON UN ASESOR',
+      popular: false
+    },
+    {
+      name: 'Empresarial',
+      price: '$199.999/MES',
+      features: [
+        { text: 'PERFIL DIGITAL COMPLETO.', included: true },
+        { text: 'URL PERSONALIZADA.', included: true },
+        { text: 'ENLACES ILIMITADOS.', included: true },
+        { text: 'ESTADÍSTICAS AVANZADAS.', included: true },
+        { text: 'DISEÑOS PREMIUM Y.', included: true },
+        { text: 'SOPORTE PRIORITARIO.', included: true },
+        { text: 'PERFILES ILIMITADOS.', included: true }
+      ],
+      cta: 'CONTACTAR CON UN ASESOR',
       popular: false
     }
   ];
@@ -126,7 +139,7 @@ const LandingPage: React.FC = () => {
       answer: 'El tiempo de entrega depende de tu ubicación. Generalmente, las tarjetas se entregan en un plazo de 3 a 7 días hábiles después de la confirmación del pedido.'
     },
     {
-      question: '¿Puedo cambiar de plan en cualquier momento?',
+      question: '¿Puedo cambiar el plan en cualquier momento?',
       answer: 'Sí, puedes actualizar o degradar tu plan en cualquier momento desde tu panel de control. Si actualizas, se te cobrará la diferencia prorrateada. Si degradas, el cambio se aplicará al final de tu ciclo de facturación actual.'
     },
     {
@@ -164,21 +177,21 @@ const LandingPage: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-center md:space-x-12">
             <div className="md:w-1/2 mb-6 md:mb-0">
               <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight mb-4 font-montserrat">
-                Tu Perfil Digital en una Tarjeta
+                "Comparte tu información con un solo toque."
               </h1>
               <p className="text-lg sm:text-xl md:text-2xl mb-6 sm:mb-8 font-lemon">
-                Comparte toda tu información profesional con un simple toque. Conecta tu mundo digital con el físico mediante nuestra tecnología NFC.
+                Tarjetas NFC inteligentes para conectar más rápido y sin complicaciones. Acércate, toca y conéctate al instante con Nefi.
               </p>
               <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                 <Link 
                   to="/register" 
-                  className="px-4 sm:px-6 py-2 sm:py-3 text-center rounded-md bg-[#FFFFFF] text-[#00C2FF] font-medium font-lemon hover:bg-[#E6E7E8] transition duration-150"
+                  className="px-4 sm:px-6 py-2 sm:py-3 text-center rounded-md bg-[#00C2FF] text-[#FFFFFF] font-medium font-lemon hover:bg-[#99D9F2] transition duration-150"
                 >
-                  Comenzar Ahora
+                  Comienza Ahora
                 </Link>
                 <a 
                   href="#features" 
-                  className="px-4 sm:px-6 py-2 sm:py-3 text-center rounded-md bg-[#00C2FF] text-[#0A2640] font-medium font-lemon hover:bg-[#99D9F2] transition duration-150"
+                  className="px-4 sm:px-6 py-2 sm:py-3 text-center rounded-md bg-[#FFFFFF] text-[#00C2FF] font-medium font-lemon hover:bg-[#E6E7E8] transition duration-150"
                 >
                   Conocer Más
                 </a>
@@ -186,7 +199,7 @@ const LandingPage: React.FC = () => {
             </div>
             <div className="md:w-1/2">
               <img 
-                src={nefi001}
+                src={nefi001} 
                 alt="Tarjeta NFC y smartphone" 
                 className="w-full h-auto rounded-lg shadow-xl"
               />
@@ -225,14 +238,14 @@ const LandingPage: React.FC = () => {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="bg-[#FFFFFF] p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
-                <div className="mb-2 sm:mb-4">
+              <div key={index} className="bg-[#0A2640] p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
+                <div className="mb-2 sm:mb-4 flex justify-center">
                   {feature.icon}
                 </div>
-                <h3 className="text-lg sm:text-xl font-semibold text-[#0A2640] mb-1 sm:mb-2 font-montserrat">
+                <h3 className="text-lg sm:text-xl font-semibold text-[#FFFFFF] mb-1 sm:mb-2 text-left font-montserrat">
                   {feature.title}
                 </h3>
-                <p className="text-sm sm:text-base text-[#0A2640] font-lemon">
+                <p className="text-sm sm:text-base text-[#FFFFFF] text-left font-lemon">
                   {feature.description}
                 </p>
               </div>
@@ -246,47 +259,47 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-6 sm:mb-8 md:mb-10 lg:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#0A2640] mb-2 sm:mb-4 font-montserrat">
-              Cómo Funciona
+              ¿Cómo Funciona?
             </h2>
             <p className="text-lg sm:text-xl md:text-2xl text-[#0A2640] max-w-2xl sm:max-w-3xl mx-auto font-lemon">
-              En tres simples pasos, tendrás tu perfil digital listo para compartir.
+              En solo tres simples pasos, activa tu perfil digital y compártelo al instante
             </p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          <div className="flex justify-center items-center space-x-6 sm:space-x-8 md:space-x-12">
             <div className="text-center">
-              <div className="bg-[#E6E7E8] rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-2 sm:mb-4">
-                <span className="text-lg sm:text-2xl font-bold text-[#00C2FF] font-montserrat">1</span>
+              <div className="bg-[#00C2FF] rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-2 sm:mb-4">
+                <span className="text-lg sm:text-2xl font-bold text-[#FFFFFF] font-montserrat">1</span>
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-[#0A2640] mb-1 sm:mb-2 font-montserrat">
                 Regístrate
               </h3>
-              <p className="text-sm sm:text-base text-[#0A2640] font-lemon">
-                Crea tu cuenta y elige el plan que mejor se adapte a tus necesidades.
+              <p className="text-sm sm:text-base text-[#0A2640] max-w-xs text-center font-lemon">
+                Crea tu cuenta y selecciona el plan que mejor se adapte a tus necesidades.
               </p>
             </div>
-            
+            <div className="border-t-2 border-[#0A2640] w-16 sm:w-24"></div>
             <div className="text-center">
-              <div className="bg-[#E6E7E8] rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-2 sm:mb-4">
-                <span className="text-lg sm:text-2xl font-bold text-[#00C2FF] font-montserrat">2</span>
+              <div className="bg-[#00C2FF] rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-2 sm:mb-4">
+                <span className="text-lg sm:text-2xl font-bold text-[#FFFFFF] font-montserrat">2</span>
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-[#0A2640] mb-1 sm:mb-2 font-montserrat">
-                Personaliza tu Perfil
+                Configura tu perfil
               </h3>
-              <p className="text-sm sm:text-base text-[#0A2640] font-lemon">
-                Añade tu información, enlaces a redes sociales, fotos y todo lo que quieras mostrar.
+              <p className="text-sm sm:text-base text-[#0A2640] max-w-xs text-center font-lemon">
+                Agrega tu información, enlaces estratégicos y detalles clave para tu red de contactos.
               </p>
             </div>
-            
+            <div className="border-t-2 border-[#0A2640] w-16 sm:w-24"></div>
             <div className="text-center">
-              <div className="bg-[#E6E7E8] rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-2 sm:mb-4">
-                <span className="text-lg sm:text-2xl font-bold text-[#00C2FF] font-montserrat">3</span>
+              <div className="bg-[#00C2FF] rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-2 sm:mb-4">
+                <span className="text-lg sm:text-2xl font-bold text-[#FFFFFF] font-montserrat">3</span>
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-[#0A2640] mb-1 sm:mb-2 font-montserrat">
-                Comparte
+                Conéctate al instante
               </h3>
-              <p className="text-sm sm:text-base text-[#0A2640] font-lemon">
-                Recibe tu tarjeta NFC y comienza a compartir tu perfil con un simple toque.
+              <p className="text-sm sm:text-base text-[#0A2640] max-w-xs text-center font-lemon">
+                Recibe tu tarjeta NFC y comparte tu perfil profesional con un solo toque.
               </p>
             </div>
           </div>
@@ -294,45 +307,44 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-10 sm:py-12 md:py-16 lg:py-20 bg-[#E6E7E8]">
+      <section id="pricing" className="py-10 sm:py-12 md:py-16 lg:py-20 bg-[#0A2640] text-[#FFFFFF]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-6 sm:mb-8 md:mb-10 lg:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#0A2640] mb-2 sm:mb-4 font-montserrat">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#FFFFFF] mb-2 sm:mb-4 font-montserrat">
               Planes y Precios
             </h2>
-            <p className="text-lg sm:text-xl md:text-2xl text-[#0A2640] max-w-2xl sm:max-w-3xl mx-auto font-lemon">
-              Elige el plan que mejor se adapte a tus necesidades y comienza a disfrutar de todos los beneficios.
+            <p className="text-lg sm:text-xl md:text-2xl text-[#FFFFFF] max-w-2xl sm:max-w-3xl mx-auto font-lemon">
+              Elige el plan que mejor se adapte a tus necesidades y comienza a disfrutar de todos los beneficios de NEFI.
             </p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 sm:gap-6 max-w-md mx-auto sm:max-w-none">
             {plans.map((plan, index) => (
               <div 
                 key={index} 
-                className={`bg-[#FFFFFF] p-4 sm:p-6 rounded-lg shadow-md overflow-hidden transition duration-300 hover:shadow-xl ${plan.popular ? 'border-2 border-[#00C2FF] transform scale-105' : ''}`}
+                className={`bg-[#FFFFFF] p-3 sm:p-4 rounded-xl shadow-md overflow-hidden transition duration-300 hover:shadow-xl ${plan.popular ? 'border-2 border-[#00C2FF] transform scale-105' : ''}`}
               >
                 {plan.popular && (
-                  <div className="bg-[#00C2FF] text-[#0A2640] text-center py-1 sm:py-2 font-medium font-montserrat">
+                  <div className="bg-[#00C2FF] text-[#0A2640] text-center py-1 sm:py-1.5 font-medium font-montserrat text-sm">
                     Más Popular
                   </div>
                 )}
                 <div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-[#0A2640] mb-2 sm:mb-4 font-montserrat">
+                  <h3 className="text-lg sm:text-xl font-bold text-[#0A2640] mb-1 sm:mb-2 font-montserrat">
                     {plan.name}
                   </h3>
-                  <div className="flex items-baseline mb-2 sm:mb-4">
-                    <span className="text-2xl sm:text-4xl font-extrabold text-[#0A2640] font-montserrat">${plan.price}</span>
-                    <span className="text-sm sm:text-base text-[#0A2640] ml-1 font-lemon">/mes</span>
+                  <div className="flex items-baseline mb-1 sm:mb-2">
+                    <span className="text-xl sm:text-2xl font-extrabold text-[#0A2640] font-montserrat">{plan.price}</span>
                   </div>
-                  <ul className="space-y-2 sm:space-y-4 mb-4 sm:mb-6">
+                  <ul className="space-y-1 sm:space-y-2 mb-2 sm:mb-4">
                     {plan.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-start">
                         {feature.included ? (
-                          <Check className="h-4 sm:h-5 w-4 sm:w-5 text-[#00C2FF] mr-1 sm:mr-2 flex-shrink-0" />
+                          <Check className="h-3 sm:h-4 w-3 sm:w-4 text-[#00C2FF] mr-1 sm:mr-1.5 flex-shrink-0" />
                         ) : (
-                          <X className="h-4 sm:h-5 w-4 sm:w-5 text-[#0A2640] mr-1 sm:mr-2 flex-shrink-0" />
+                          <X className="h-3 sm:h-4 w-3 sm:w-4 text-[#0A2640] mr-1 sm:mr-1.5 flex-shrink-0" />
                         )}
-                        <span className={feature.included ? 'text-sm sm:text-base text-[#0A2640] font-lemon' : 'text-sm sm:text-base text-[#E6E7E8] font-lemon'}>
+                        <span className={feature.included ? 'text-xs sm:text-sm text-[#0A2640] font-lemon' : 'text-xs sm:text-sm text-[#E6E7E8] font-lemon'}>
                           {feature.text}
                         </span>
                       </li>
@@ -340,11 +352,7 @@ const LandingPage: React.FC = () => {
                   </ul>
                   <Link 
                     to="/register" 
-                    className={`block w-full py-2 sm:py-3 px-2 sm:px-4 rounded-md text-center font-medium ${
-                      plan.popular 
-                        ? 'bg-[#00C2FF] text-[#0A2640] hover:bg-[#99D9F2] font-montserrat' 
-                        : 'bg-[#E6E7E8] text-[#0A2640] hover:bg-[#D3D4D5] font-lemon'
-                    } transition duration-150`}
+                    className="block w-full py-1 sm:py-2 px-2 sm:px-3 rounded-md text-center font-medium bg-[#00C2FF] text-[#0A2640] hover:bg-[#99D9F2] font-montserrat text-sm sm:text-base transition duration-150"
                   >
                     {plan.cta}
                   </Link>
@@ -355,38 +363,7 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-10 sm:py-12 md:py-16 lg:py-20 bg-[#FFFFFF]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-6 sm:mb-8 md:mb-10 lg:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#0A2640] mb-2 sm:mb-4 font-montserrat">
-              Lo Que Dicen Nuestros Clientes
-            </h2>
-            <p className="text-lg sm:text-xl md:text-2xl text-[#0A2640] max-w-2xl sm:max-w-3xl mx-auto font-lemon">
-              Descubre cómo NEFI ha ayudado a profesionales y empresas a mejorar su presencia digital.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-[#FFFFFF] p-4 sm:p-6 rounded-lg shadow-md">
-                <div className="flex items-center mb-2 sm:mb-4">
-                  <img 
-                    src={testimonial.image} 
-                    alt={testimonial.name} 
-                    className="w-8 sm:w-12 h-8 sm:h-12 rounded-full mr-2 sm:mr-4"
-                  />
-                  <div>
-                    <h4 className="text-sm sm:text-base font-semibold text-[#0A2640] font-montserrat">{testimonial.name}</h4>
-                    <p className="text-xs sm:text-sm text-[#0A2640] font-lemon">{testimonial.role}</p>
-                  </div>
-                </div>
-                <p className="text-sm sm:text-base text-[#0A2640] italic font-lemon">"{testimonial.quote}"</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+     
 
       {/* FAQ Section */}
       <section id="faq" className="py-10 sm:py-12 md:py-16 lg:py-20 bg-[#E6E7E8]">
@@ -396,30 +373,29 @@ const LandingPage: React.FC = () => {
               Preguntas Frecuentes
             </h2>
             <p className="text-lg sm:text-xl md:text-2xl text-[#0A2640] font-lemon">
-              Encuentra respuestas a las preguntas más comunes sobre nuestro servicio.
+              Respuestas de las preguntas más comunes sobre nuestros servicios.
             </p>
           </div>
           
           <div className="space-y-2 sm:space-y-4">
             {faqs.map((faq, index) => (
-              <div key={index} className="bg-[#FFFFFF] rounded-lg shadow-md overflow-hidden">
-                <button
-                  className="w-full px-4 sm:px-6 py-2 sm:py-4 text-left flex justify-between items-center focus:outline-none"
-                  onClick={() => toggleFaq(index)}
-                >
-                  <span className="text-sm sm:text-base font-medium text-[#0A2640] font-montserrat">{faq.question}</span>
-                  {openFaq === index ? (
-                    <ChevronUp className="h-4 sm:h-5 w-4 sm:w-5 text-[#00C2FF]" />
-                  ) : (
-                    <ChevronDown className="h-4 sm:h-5 w-4 sm:w-5 text-[#00C2FF]" />
-                  )}
-                </button>
+              <button
+                key={index}
+                className="w-full bg-[#00C2FF] text-white p-3 sm:p-4 rounded-lg shadow-md hover:shadow-lg transition duration-300 text-left focus:outline-none flex justify-between items-center"
+                onClick={() => toggleFaq(index)}
+              >
+                <span className="text-sm sm:text-base font-medium text-[#FFFFFF] font-montserrat">{faq.question}</span>
+                {openFaq === index ? (
+                  <ChevronUp className="h-5 w-5 text-white" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-white" />
+                )}
                 {openFaq === index && (
-                  <div className="px-4 sm:px-6 pb-2 sm:pb-4">
-                    <p className="text-sm sm:text-base text-[#0A2640] font-lemon">{faq.answer}</p>
+                  <div className="mt-2">
+                    <p className="text-sm sm:text-base text-[#FFFFFF] font-lemon">{faq.answer}</p>
                   </div>
                 )}
-              </div>
+              </button>
             ))}
           </div>
         </div>

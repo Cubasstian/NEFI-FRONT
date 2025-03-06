@@ -1,6 +1,5 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { User, Settings, BarChart2, CreditCard, FileText, Bell, LogOut } from 'lucide-react';
+import { User, Settings, BarChart2, CreditCard, FileText, Bell } from 'lucide-react';
 
 const Dashboard = () => {
   // Mock user data

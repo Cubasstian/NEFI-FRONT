@@ -1,11 +1,16 @@
-import { configureStore } from '@reduxjs/toolkit'
+import { create } from 'zustand'
 
-export const store = configureStore({
-  reducer: {
-   
-  }
-})
+interface BearState {
+  blackBears: number
+  polarBears: number
+  pandaBears: number
+  increase: (by: number) => void
+}
 
-export type RootState = ReturnType<typeof store.getState>
-export type AppDispatch = typeof store.dispatch
-export type AppStore = typeof store
+export const useBearStore = create<BearState>()((set) => ({
+  blackBears: 10,
+  polarBears: 5,
+  pandaBears: 1,
+  increase: (by: number) => set((state) => ({ blackBears: state.blackBears + by })),
+  
+}))

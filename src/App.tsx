@@ -13,6 +13,7 @@ import Profile from './pages/Profile';
 import AdminPanel from './pages/AdminPanel';
 import NotFound from './pages/NotFound';
 
+
 const AppContent = () => {
   const location = useLocation();
 

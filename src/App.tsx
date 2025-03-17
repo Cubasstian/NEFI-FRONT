@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { useEffect } from 'react';
 import { pageview } from './utils/analytics';
 
+// Ajustado para src/assets/
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LandingPage from './pages/LandingPage';
@@ -12,7 +13,7 @@ import SharedProfile from './pages/SharedProfile';
 import Profile from './pages/Profile';
 import AdminPanel from './pages/AdminPanel';
 import NotFound from './pages/NotFound';
-
+import { ProfileProvider } from './context/ProfileContext';
 
 const AppContent = () => {
   const location = useLocation();
@@ -44,7 +45,9 @@ const AppContent = () => {
 function App() {
   return (
     <Router>
-      <AppContent />
+      <ProfileProvider>
+        <AppContent />
+      </ProfileProvider>
     </Router>
   );
 }

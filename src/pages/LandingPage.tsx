@@ -83,7 +83,7 @@ const LandingPage: React.FC = () => {
     },
     {
       name: 'Premium',
-      price: '$49.999/mes',
+      price: '$19.900/mes',
       features: [
         { text: 'Perfil digital completo.', included: true },
         { text: 'URL personalizada.', included: true },
@@ -99,7 +99,7 @@ const LandingPage: React.FC = () => {
     },
     {
       name: 'Micro Empresa',
-      price: '$120.000/mes',
+      price: '$49.090/mes',
       features: [
         { text: 'Perfil digital completo.', included: true },
         { text: 'URL personalizada.', included: true },
@@ -115,7 +115,7 @@ const LandingPage: React.FC = () => {
     },
     {
       name: 'Empresarial',
-      price: '$199.999/mes',
+      price: '$99.900/mes',
       features: [
         { text: 'Perfil digital completo.', included: true },
         { text: 'URL personalizada.', included: true },

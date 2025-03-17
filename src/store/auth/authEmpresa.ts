@@ -1,8 +1,7 @@
 import { create } from "zustand";
 import { db, auth } from "../../config/firebaseConfig";
 import { collection, doc, setDoc, getDoc } from "firebase/firestore";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User, fetchSignInMethodsForEmail } from "firebase/auth";
-import bcrypt from "bcryptjs";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User } from "firebase/auth";
 
 interface EmpresaState {
   empresa: User | null;
@@ -16,29 +15,15 @@ export const useEmpresaStore = create<EmpresaState>((set) => ({
   empresa: null,
   isLoading: false,
 
- 
+  // ✅ Registro de Empresa
   registerEmpresa: async (email, password, data) => {
     set({ isLoading: true });
     try {
-      const methods = await fetchSignInMethodsForEmail(auth, email);
-      if (methods.length > 0) {
-        throw new Error("El correo ya está registrado.");
-      }
-     
-      const hashedPassword = bcrypt.hashSync(password, 10);
-
-     
       const empresaCredential = await createUserWithEmailAndPassword(auth, email, password);
       const empresa = empresaCredential.user;
 
-    
       const empresaRef = doc(collection(db, "empresas"), empresa.uid);
-      await setDoc(empresaRef, {
-        ...data,
-        correo: email,
-        password: hashedPassword, 
-        estado: true,
-      });
+      await setDoc(empresaRef, { ...data, correo: email, estado: true });
 
       set({ empresa });
     } catch (error) {
@@ -48,21 +33,23 @@ export const useEmpresaStore = create<EmpresaState>((set) => ({
     }
   },
 
-  
+  // ✅ Login de Empresa
   loginEmpresa: async (email, password) => {
     set({ isLoading: true });
     try {
       const empresaCredential = await signInWithEmailAndPassword(auth, email, password);
       const empresa = empresaCredential.user;
 
-     
       const empresaRef = doc(db, "empresas", empresa.uid);
       const empresaSnap = await getDoc(empresaRef);
+
       if (!empresaSnap.exists()) {
-        throw new Error("Empresa no encontrada en la base de datos.");
+        throw new Error("Empresa no encontrada en Firestore");
       }
 
+      console.log("Empresa autenticada:", empresaSnap.data());
       set({ empresa });
+
     } catch (error) {
       console.error("Error en el login de empresa:", error);
     } finally {
@@ -70,7 +57,7 @@ export const useEmpresaStore = create<EmpresaState>((set) => ({
     }
   },
 
- 
+  // ✅ Logout
   logoutEmpresa: async () => {
     try {
       await signOut(auth);

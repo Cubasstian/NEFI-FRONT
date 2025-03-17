@@ -23,8 +23,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      const uid = user.uid; 
 
-      const userRef = doc(collection(db, "usuarios"), user.uid);
+      const userRef = doc(collection(db, "usuarios"), uid);
       await setDoc(userRef, { ...data, correo: email, estado: true });
 
       set({ user });
@@ -41,8 +42,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
+      const uid = user.uid;
 
-      const userRef = doc(db, "usuarios", user.uid);
+      const userRef = doc(db, "usuarios", uid);
       const userSnap = await getDoc(userRef);
 
       if (!userSnap.exists()) {
@@ -71,8 +73,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      const uid = user.uid;
 
-      const userRef = doc(db, "usuarios", user.uid);
+      const userRef = doc(db, "usuarios", uid);
       const userSnap = await getDoc(userRef);
 
       if (!userSnap.exists()) {

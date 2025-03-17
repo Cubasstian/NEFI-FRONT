@@ -5,16 +5,16 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useAuthStore } from '@/store/auth/authUser';
 import { useEmpresaStore } from '@/store/auth/authEmpresa';
+import { auth, db } from '@/config/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
 import nefiLogo from '../assets/nefi.png';
 import { FcGoogle } from 'react-icons/fc';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '@/config/firebaseConfig';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 const Login = () => {
   const navigate = useNavigate();
   const { loginWithGoogle, isLoading: userLoading } = useAuthStore();
   const { loginEmpresa, isLoading: empresaLoading } = useEmpresaStore();
-
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
@@ -26,8 +26,18 @@ const Login = () => {
     }),
     onSubmit: async ({ correo, password }) => {
       try {
-        const userRef = doc(db, "usuarios", correo);
-        const userSnap = await getDoc(userRef);
+        // Autenticamos al usuario en Firebase Auth
+        const userCredential = await signInWithEmailAndPassword(auth, correo, password);
+        const user = userCredential.user;
+
+        // Buscamos en Firestore si es un usuario o una empresa
+        const userRef = doc(db, "usuarios", user.uid);
+        const empresaRef = doc(db, "empresas", user.uid);
+
+        const [userSnap, empresaSnap] = await Promise.all([
+          getDoc(userRef),
+          getDoc(empresaRef)
+        ]);
 
         if (userSnap.exists()) {
           const userData = userSnap.data();
@@ -36,10 +46,14 @@ const Login = () => {
           if (userData.rol === "ADMIN") {
             navigate('/admin');
           } else {
-            navigate(`/profile/${userData.id}`);
+            navigate(`/profile/${user.uid}`);
           }
+        } else if (empresaSnap.exists()) {
+          const empresaData = empresaSnap.data();
+          console.log("Empresa encontrada:", empresaData);
+          navigate(`/profile/${user.uid}`);
         } else {
-          console.error("Usuario no encontrado");
+          console.error("No se encontró el usuario ni la empresa en Firestore.");
         }
       } catch (error) {
         console.error("Error en el login:", error);
@@ -108,16 +122,6 @@ const Login = () => {
               </button>
             </div>
           </form>
-        </div>
-
-        {/* Sección informativa */}
-        <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-800 to-cyan-500 p-8 text-white items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold mb-4">We are more than just a company</h2>
-            <p className="text-sm leading-relaxed max-w-md">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-            </p>
-          </div>
         </div>
       </div>
     </div>

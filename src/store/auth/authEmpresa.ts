@@ -21,8 +21,9 @@ export const useEmpresaStore = create<EmpresaState>((set) => ({
     try {
       const empresaCredential = await createUserWithEmailAndPassword(auth, email, password);
       const empresa = empresaCredential.user;
+      const uid = empresa.uid;
 
-      const empresaRef = doc(collection(db, "empresas"), empresa.uid);
+      const empresaRef = doc(collection(db, "empresas"), uid);
       await setDoc(empresaRef, { ...data, correo: email, estado: true });
 
       set({ empresa });
@@ -39,8 +40,9 @@ export const useEmpresaStore = create<EmpresaState>((set) => ({
     try {
       const empresaCredential = await signInWithEmailAndPassword(auth, email, password);
       const empresa = empresaCredential.user;
+      const uid = empresa.uid;
 
-      const empresaRef = doc(db, "empresas", empresa.uid);
+      const empresaRef = doc(db, "empresas", uid);
       const empresaSnap = await getDoc(empresaRef);
 
       if (!empresaSnap.exists()) {

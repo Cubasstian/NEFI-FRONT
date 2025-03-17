@@ -165,7 +165,7 @@ const Register = () => {
           </button>
 
           <div className="mt-4">
-            <button onClick={loginWithGoogle} className="w-full flex items-center justify-center gap-2 py-3 px-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition-all duration-300">
+            <button onClick={() => loginWithGoogle()} className="w-full flex items-center justify-center gap-2 py-3 px-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition-all duration-300">
               <FcGoogle className="h-5 w-5" />
               Registrarse con Google
             </button>

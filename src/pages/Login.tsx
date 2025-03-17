@@ -4,6 +4,7 @@ import { LogIn, Eye, EyeOff } from 'lucide-react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import nefiLogo from '../assets/nefi.png';
+import { FcGoogle } from 'react-icons/fc';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -173,6 +174,12 @@ const Login = () => {
                   Regístrate
                 </Link>
               </p>
+            </div>
+            <div className="mt-4">
+              <button onClick={() => console.log('Con google')} className="w-full flex items-center justify-center gap-2 py-3 px-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition-all duration-300">
+                <FcGoogle className="h-5 w-5" />
+                Iniciar con Google
+              </button>
             </div>
           </form>
         </div>

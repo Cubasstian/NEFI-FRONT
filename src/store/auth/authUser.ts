@@ -60,11 +60,12 @@ export const useAuthStore = create<AuthState>((set) => ({
         telefono: "",
         direccion: "",
         rol: "USER",
-        stack: "develop",
+        stack: "",
         habilidades: [],
         redes: [],
         acercade: "",
         estado: true,
+        username: "",
         password: "", // No guardamos contraseña con Google
       }, { merge: true });
 

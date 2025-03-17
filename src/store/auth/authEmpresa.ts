@@ -16,7 +16,7 @@ export const useEmpresaStore = create<EmpresaState>((set) => ({
   empresa: null,
   isLoading: false,
 
-  // ✅ Registro de empresa con email y contraseña
+ 
   registerEmpresa: async (email, password, data) => {
     set({ isLoading: true });
     try {
@@ -24,19 +24,19 @@ export const useEmpresaStore = create<EmpresaState>((set) => ({
       if (methods.length > 0) {
         throw new Error("El correo ya está registrado.");
       }
-      // 🔒 Encriptar la contraseña antes de guardarla en Firestore
+     
       const hashedPassword = bcrypt.hashSync(password, 10);
 
-      // 🆕 Crear la empresa en Firebase Authentication
+     
       const empresaCredential = await createUserWithEmailAndPassword(auth, email, password);
       const empresa = empresaCredential.user;
 
-      // 🔥 Guardar empresa en Firestore
+    
       const empresaRef = doc(collection(db, "empresas"), empresa.uid);
       await setDoc(empresaRef, {
         ...data,
         correo: email,
-        password: hashedPassword, // Guardamos la contraseña encriptada
+        password: hashedPassword, 
         estado: true,
       });
 
@@ -48,14 +48,14 @@ export const useEmpresaStore = create<EmpresaState>((set) => ({
     }
   },
 
-  // ✅ Login de empresa
+  
   loginEmpresa: async (email, password) => {
     set({ isLoading: true });
     try {
       const empresaCredential = await signInWithEmailAndPassword(auth, email, password);
       const empresa = empresaCredential.user;
 
-      // 🔍 Verificar si la empresa existe en Firestore
+     
       const empresaRef = doc(db, "empresas", empresa.uid);
       const empresaSnap = await getDoc(empresaRef);
       if (!empresaSnap.exists()) {
@@ -70,7 +70,7 @@ export const useEmpresaStore = create<EmpresaState>((set) => ({
     }
   },
 
-  // ✅ Logout de empresa
+ 
   logoutEmpresa: async () => {
     try {
       await signOut(auth);

@@ -123,8 +123,18 @@ const Login = () => {
             </div>
           </form>
         </div>
+        <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-800 to-cyan-500 p-8 text-white items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold mb-4">We are more than just a company</h2>
+            <p className="text-sm leading-relaxed max-w-md">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            </p>
+          </div>
+</div>
       </div>
+
     </div>
+
   );
 };
 

@@ -75,6 +75,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       const user = userCredential.user;
       const uid = user.uid;
 
+      console.log('uid', uid)
+
       const userRef = doc(db, "usuarios", uid);
       const userSnap = await getDoc(userRef);
 

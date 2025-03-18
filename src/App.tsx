@@ -6,7 +6,6 @@ import Footer from './components/Footer';
 import LandingPage from './pages/LandingPage';
 import Register from './pages/Register';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
 import SharedProfile from './pages/SharedProfile';
 import Profile from './pages/Profile';
 import AdminPanel from './pages/AdminPanel';
@@ -28,7 +27,6 @@ const AppContent = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/perfil/:username" element={<SharedProfile />} />
           <Route path="/profile/:id" element={<Profile />} />
           <Route path="/admin" element={<AdminPanel />} />

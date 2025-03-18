@@ -11,6 +11,7 @@ import NotFound from './pages/NotFound';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { useAuthStore } from './store/auth/userAuthStore';
+import { pageview } from './utils/analytics';
 
 // Componente para rutas protegidas
 const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({ children, adminOnly = false }) => {
@@ -21,6 +22,11 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean 
       checkAuth(); // Verifica el estado de autenticación al montar
     }
   }, []);
+
+  
+  useEffect(() => {
+    pageview(location.pathname);
+  }, [location]);
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;

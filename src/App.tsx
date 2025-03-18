@@ -29,7 +29,7 @@ const AppContent = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/perfil" element={<SharedProfile />} />
+          <Route path="/perfil/:username" element={<SharedProfile />} />
           <Route path="/profile/:id" element={<Profile />} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="*" element={<NotFound />} />

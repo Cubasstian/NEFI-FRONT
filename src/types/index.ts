@@ -37,8 +37,8 @@ export interface UserData {
   
   export interface Plan {
     id: string;
-    name: string;
-    price: string;
+    nombre: string;
+    precio: string;
     features: { text: string; included: boolean }[];
     cta: string;
     popular: boolean;

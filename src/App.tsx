@@ -1,48 +1,87 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
-import { pageview } from './utils/analytics';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ProfileProvider } from './context/ProfileContext'; // Ajusta la ruta
 import LandingPage from './pages/LandingPage';
-import Register from './pages/Register';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import SharedProfile from './pages/SharedProfile';
 import Profile from './pages/Profile';
 import AdminPanel from './pages/AdminPanel';
 import NotFound from './pages/NotFound';
-import { ProfileProvider } from './context/ProfileContext';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import { useAuthStore } from './store/auth/userAuthStore';
 
-const AppContent = () => {
-  const location = useLocation();
+// Componente para rutas protegidas
+const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({ children, adminOnly = false }) => {
+  const { user, profile, checkAuth, isLoading } = useAuthStore();
 
   useEffect(() => {
-    pageview(location.pathname);
-  }, [location]);
+    if (!user && !isLoading) {
+      checkAuth(); // Verifica el estado de autenticación al montar
+    }
+  }, []);
 
-  return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-grow">
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/perfil/:username" element={<SharedProfile />} />
-          <Route path="/profile/:id" element={<Profile />} />
-          <Route path="/admin" element={<AdminPanel />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
-      <Footer />
-    </div>
-  );
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (adminOnly && profile?.rol !== "ADMIN") {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Componente para rutas públicas que redirigen si ya estás autenticado
+const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, isLoading } = useAuthStore();
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
+  }
+
+  if (user) {
+    return <Navigate to={`/profile/${user.uid}`} replace />;
+  }
+
+  return <>{children}</>;
 };
 
 function App() {
   return (
     <Router>
       <ProfileProvider>
-        <AppContent />
+        <div className="flex flex-col min-h-screen">
+          <Navbar />
+          <main className="flex-grow">
+            <Routes>
+              {/* Rutas públicas */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+              <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+              <Route path="/perfil/:username" element={<SharedProfile />} />
+
+              {/* Rutas protegidas */}
+              <Route
+                path="/profile/:id"
+                element={<ProtectedRoute><Profile /></ProtectedRoute>}
+              />
+              <Route
+                path="/admin"
+                element={<ProtectedRoute adminOnly><AdminPanel /></ProtectedRoute>}
+              />
+
+              {/* Ruta 404 */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
       </ProfileProvider>
     </Router>
   );

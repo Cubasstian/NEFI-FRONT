@@ -1,20 +1,18 @@
-import React, { useState, useRef, useEffect } from 'react';
+// src/pages/Login.tsx
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
 import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import { useAuthStore } from '@/store/auth/authUser';
-import { useEmpresaStore } from '@/store/auth/authEmpresa';
-import { auth, db } from '@/config/firebaseConfig';
+import * as Yup from 'yup';// Ajusta la ruta según tu estructura
+import { auth, db } from '../config/firebaseConfig'; // Ajusta la ruta según tu estructura
 import { doc, getDoc } from 'firebase/firestore';
 import nefiLogo from '../assets/nefi.png';
 import { FcGoogle } from 'react-icons/fc';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useAuthStore } from '@/store/auth/userAuthStore';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { loginWithGoogle, isLoading: userLoading } = useAuthStore();
-  const { loginEmpresa, isLoading: empresaLoading } = useEmpresaStore();
+  const { loginWithEmail, loginWithGoogle, isLoading, error, checkAuth } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const correoInputRef = useRef<HTMLInputElement>(null);
@@ -27,41 +25,46 @@ const Login = () => {
     }),
     onSubmit: async ({ correo, password }) => {
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, correo, password);
-        const user = userCredential.user;
-        const userRef = doc(db, "usuarios", user.uid);
-        const empresaRef = doc(db, "empresas", user.uid);
-        const [userSnap, empresaSnap] = await Promise.all([
-          getDoc(userRef),
-          getDoc(empresaRef)
-        ]);
+        await loginWithEmail(correo, password);
+        const user = auth.currentUser;
+        if (user) {
+          const userRef = doc(db, "usuarios", user.uid);
+          const empresaRef = doc(db, "empresas", user.uid);
+          const [userSnap, empresaSnap] = await Promise.all([
+            getDoc(userRef),
+            getDoc(empresaRef)
+          ]);
 
-        if (userSnap.exists()) {
-          const userData = userSnap.data();
-          navigate(userData.rol === "ADMIN" ? '/admin' : `/profile/${user.uid}`);
-        } else if (empresaSnap.exists()) {
-          navigate(`/profile/${user.uid}`);
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            navigate(userData.rol === "ADMIN" ? '/admin' : `/profile/${user.uid}`);
+          } else if (empresaSnap.exists()) {
+            navigate(`/profile/${user.uid}`);
+          }
         }
-      } catch (error) {
-        console.error("Error en el login:", error);
+      } catch (err) {
+        console.error("Error en el login:", err);
       }
     },
   });
-
-  useEffect(() => {
-    if (correoInputRef.current) {
-      correoInputRef.current.focus();
-    }
-  }, []);
+  // useEffect(() => {
+  //   checkAuth(); 
+  //   if (correoInputRef.current) {
+  //     correoInputRef.current.focus();
+  //   }
+  // }, [checkAuth]);
 
   const handleGoogleSignIn = async () => {
     try {
       await loginWithGoogle();
-      const userRef = doc(db, "usuarios", auth.currentUser?.uid || "");
-      const userSnap = await getDoc(userRef);
-      if (userSnap.exists()) {
-        const userData = userSnap.data();
-        navigate(userData.rol === "ADMIN" ? "/admin" : `/profile/${userData.id}`);
+      const user = auth.currentUser;
+      if (user) {
+        const userRef = doc(db, "usuarios", user.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          navigate(userData.rol === "ADMIN" ? "/admin" : `/profile/${user.uid}`);
+        }
       }
     } catch (error) {
       console.error("Error con Google:", error);
@@ -125,11 +128,16 @@ const Login = () => {
               )}
             </div>
 
+            {error && (
+              <p className="text-red-500 text-xs text-center">{error}</p>
+            )}
+
             <button 
               type="submit" 
+              disabled={isLoading}
               className="w-full bg-gradient-to-r from-blue-800 to-cyan-500 text-white font-medium py-2 px-4 rounded-md hover:from-blue-900 hover:to-cyan-600 transition-all flex items-center justify-center gap-1 text-sm"
             >
-              <LogIn size={16} /> {userLoading || empresaLoading ? "Ingresando..." : "Ingresar"}
+              <LogIn size={16} /> {isLoading ? "Ingresando..." : "Ingresar"}
             </button>
 
             <div className="text-center">
@@ -143,6 +151,7 @@ const Login = () => {
 
             <button 
               onClick={handleGoogleSignIn} 
+              disabled={isLoading}
               className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition-all text-sm"
             >
               <FcGoogle className="h-4 w-4" /> Google

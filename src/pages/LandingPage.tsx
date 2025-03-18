@@ -1,11 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Slider from 'react-slick'; // Importar react-slick para el carrusel
-import 'slick-carousel/slick/slick.css'; // Estilos del carrusel
-import 'slick-carousel/slick/slick-theme.css'; // Tema del carrusel
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 import nefi001 from '../assets/img-001.png';
 import nefilogofooter from '../assets/nefi_logo_footer.png';
-
 import {
   Smartphone,
   Users,
@@ -19,8 +18,7 @@ import {
   ChevronUp
 } from 'lucide-react';
 
-// Número de WhatsApp configurable
-const WHATSAPP_NUMBER = "+1234567890"; // Cambia este número según sea necesario
+const WHATSAPP_NUMBER = "+1234567890";
 
 const LandingPage: React.FC = () => {
   const [openFaq, setOpenFaq] = React.useState<number | null>(null);
@@ -29,7 +27,6 @@ const LandingPage: React.FC = () => {
     setOpenFaq(openFaq === index ? null : index);
   };
 
-  // Arreglo de características
   const features = [
     {
       icon: <Smartphone className="h-10 w-10 text-[#00C2FF]" />,
@@ -63,7 +60,6 @@ const LandingPage: React.FC = () => {
     }
   ];
 
-  // Arreglo de planes
   const plans = [
     {
       name: 'Gratuito',
@@ -110,7 +106,7 @@ const LandingPage: React.FC = () => {
         { text: 'Soporte prioritario.', included: true },
         { text: 'Hasta 10 perfiles.', included: true }
       ],
-      cta: 'Contactare con un asesor',
+      cta: 'Contactar con un asesor',
       popular: false
     },
     {
@@ -126,12 +122,11 @@ const LandingPage: React.FC = () => {
         { text: 'Soporte prioritario.', included: true },
         { text: 'Perfiles ilimitados.', included: true }
       ],
-      cta: 'Contactare con un asesor',
+      cta: 'Contactar con un asesor',
       popular: false
     }
   ];
 
-  // Arreglo de preguntas frecuentes
   const faqs = [
     {
       question: '¿Cómo funciona la tarjeta NFC?',
@@ -159,7 +154,6 @@ const LandingPage: React.FC = () => {
     }
   ];
 
-  // Arreglo de testimonios
   const testimonials = [
     {
       name: 'María González',
@@ -181,15 +175,7 @@ const LandingPage: React.FC = () => {
     }
   ];
 
- // Componentes personalizados para las flechas
-interface CustomArrowProps {
-  className?: string;
-  style?: React.CSSProperties;
-  onClick?: () => void;
-}
-
-const NextArrow: React.FC<CustomArrowProps> = ({ onClick }) => {
-  return (
+  const NextArrow: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
     <button
       className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10"
       style={{
@@ -218,10 +204,8 @@ const NextArrow: React.FC<CustomArrowProps> = ({ onClick }) => {
       </svg>
     </button>
   );
-};
 
-const PrevArrow: React.FC<CustomArrowProps> = ({ onClick }) => {
-  return (
+  const PrevArrow: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
     <button
       className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10"
       style={{
@@ -250,114 +234,147 @@ const PrevArrow: React.FC<CustomArrowProps> = ({ onClick }) => {
       </svg>
     </button>
   );
-};
 
-const sliderSettings = {
-  dots: false, // Sin dots, como en tu configuración original
-  infinite: true,
-  speed: 500,
-  slidesToShow: 3,
-  slidesToScroll: 1,
-  centerMode: true,
-  centerPadding: '100px',
-  focusOnSelect: true,
-  initialSlide: 0, // Inicia en "Gratuito"
-  nextArrow: <NextArrow />, // Flecha personalizada derecha
-  prevArrow: <PrevArrow />, // Flecha personalizada izquierda
-  responsive: [
-    {
-      breakpoint: 1024,
-      settings: {
-        slidesToShow: 2,
-        slidesToScroll: 1,
-        centerMode: true,
-        centerPadding: '80px',
+  const sliderSettings = {
+    dots: false,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    centerMode: true,
+    centerPadding: '100px',
+    focusOnSelect: true,
+    initialSlide: 0,
+    nextArrow: <NextArrow />,
+    prevArrow: <PrevArrow />,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 1,
+          centerMode: true,
+          centerPadding: '80px',
+        }
+      },
+      {
+        breakpoint: 768,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+          centerMode: true,
+          centerPadding: '80px',
+        }
+      },
+      {
+        breakpoint: 640,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+          centerMode: true,
+          centerPadding: '80px',
+        }
       }
-    },
-    {
-      breakpoint: 768,
-      settings: {
-        slidesToShow: 1,
-        slidesToScroll: 1,
-        centerMode: true,
-        centerPadding: '80px',
-      }
-    },
-    {
-      breakpoint: 640,
-      settings: {
-        slidesToShow: 1,
-        slidesToScroll: 1,
-        centerMode: true,
-        centerPadding: '80px',
+    ],
+    beforeChange: (current: number, next: number) => {
+      const popularIndex = plans.findIndex(plan => plan.popular);
+      if (next === popularIndex) {
+        document.querySelectorAll('.slick-slide').forEach(slide => {
+          slide.classList.remove('scale-110', 'border-2', 'border-[#00C2FF]');
+        });
+        document.querySelector(`[data-index="${popularIndex}"]`)?.classList.add('scale-110', 'border-2', 'border-[#00C2FF]');
       }
     }
-  ],
-  beforeChange: (current: number, next: number) => {
-    const popularIndex = plans.findIndex(plan => plan.popular);
-    if (next === popularIndex) {
-      document.querySelectorAll('.slick-slide').forEach(slide => {
-        slide.classList.remove('scale-110', 'border-2', 'border-[#00C2FF]');
-      });
-      document.querySelector(`[data-index="${popularIndex}"]`)?.classList.add('scale-110', 'border-2', 'border-[#00C2FF]');
-    }
-  }
-};
+  };
 
   return (
     <div className="bg-[#FFFFFF] font-sans">
+      <style>
+        {`
+          @keyframes slideInLeft {
+            from {
+              transform: translateX(-100%);
+              opacity: 0;
+            }
+            to {
+              transform: translateX(0);
+              opacity: 1;
+            }
+          }
+
+          @keyframes slideInRight {
+            from {
+              transform: translateX(100%);
+              opacity: 0;
+            }
+            to {
+              transform: translateX(0);
+              opacity: 1;
+            }
+          }
+
+          .slide-in-left {
+            animation: slideInLeft 0.5s ease-out forwards;
+          }
+
+          .slide-in-right {
+            animation: slideInRight 0.5s ease-out forwards;
+          }
+        `}
+      </style>
+
       {/* Sección de Héroe */}
-      <section className="relative bg-[#0A2640] text-[#FFFFFF]">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-12 md:pt-12 lg:pt-24 xl:pt-32 pb-6 sm:pb-8 md:pb-12 lg:pb-16 xl:pb-24">
-    <div className="flex flex-col md:flex-row md:items-center md:space-x-6 lg:space-x-12">
-      <div className="md:w-1/2 mb-4 sm:mb-6 md:mb-0">
-        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-extrabold tracking-tight mb-2 sm:mb-4 font-montserrat">
-          "Comparte tu información con un solo toque."
-        </h1>
-        <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-4 sm:mb-6 font-lemon">
-          Tarjetas NFC inteligentes para conectar más rápido y sin complicaciones. Acércate, toca y conéctate al instante con Nefi.
-        </p>
-        <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 md:space-x-4">
-          <Link
-            to="/register"
-            className="px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-3 text-center rounded-md bg-[#00C2FF] text-[#FFFFFF] font-medium font-lemon hover:bg-[#99D9F2] transition duration-150"
-          >
-            Comienza Ahora
-          </Link>
-          <a
-            href="#features"
-            className="px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-3 text-center rounded-md bg-[#FFFFFF] text-[#00C2FF] font-medium font-lemon hover:bg-[#E6E7E8] transition duration-150"
-          >
-            Conocer Más
-          </a>
+      <section className="relative bg-[#0A2640] text-[#FFFFFF] overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-12 md:pt-12 lg:pt-24 xl:pt-32 pb-6 sm:pb-8 md:pb-12 lg:pb-16 xl:pb-24">
+          <div className="flex flex-col md:flex-row md:items-center md:space-x-6 lg:space-x-12">
+            <div className="md:w-1/2 mb-4 sm:mb-6 md:mb-0 slide-in-left">
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-extrabold tracking-tight mb-2 sm:mb-4 font-montserrat">
+                "Comparte tu información con un solo toque."
+              </h1>
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-4 sm:mb-6 font-lemon">
+                Tarjetas NFC inteligentes para conectar más rápido y sin complicaciones. Acércate, toca y conéctate al instante con Nefi.
+              </p>
+              <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 md:space-x-4">
+                <Link
+                  to="/register"
+                  className="px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-3 text-center rounded-md bg-[#00C2FF] text-[#FFFFFF] font-medium font-lemon hover:bg-[#99D9F2] transition duration-150"
+                >
+                  Comienza Ahora
+                </Link>
+                <a
+                  href="#features"
+                  className="px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-3 text-center rounded-md bg-[#FFFFFF] text-[#00C2FF] font-medium font-lemon hover:bg-[#E6E7E8] transition duration-150"
+                >
+                  Conocer Más
+                </a>
+              </div>
+            </div>
+            <div className="md:w-1/2 slide-in-right">
+              <img
+                src={nefi001}
+                alt="Tarjeta NFC y smartphone"
+                className="w-full h-auto object-cover"
+              />
+            </div>
+          </div>
+          <div className="absolute bottom-2 sm:bottom-3 md:bottom-4 lg:bottom-6 xl:bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce hidden sm:block">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 sm:h-5 md:h-6 lg:h-7 xl:h-8 w-4 sm:w-5 md:w-6 lg:w-7 xl:w-8 text-[#FFFFFF]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="#00C2FF"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 14l-7 7m0 0l-7-7m7 7V3"
+              />
+            </svg>
+          </div>
         </div>
-      </div>
-      <div className="md:w-1/2">
-        <img
-          src={nefi001}
-          alt="Tarjeta NFC y smartphone"
-          className="w-full h-auto object-cover"
-        />
-      </div>
-    </div>
-    <div className="absolute bottom-2 sm:bottom-3 md:bottom-4 lg:bottom-6 xl:bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce hidden sm:block">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-4 sm:h-5 md:h-6 lg:h-7 xl:h-8 w-4 sm:w-5 md:w-6 lg:w-7 xl:w-8 text-[#FFFFFF]"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="#00C2FF"
-        strokeWidth="2"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M19 14l-7 7m0 0l-7-7m7 7V3"
-        />
-      </svg>
-    </div>
-  </div>
-</section>
+      </section>
 
       {/* Sección de Características */}
       <section id="features" className="py-10 sm:py-12 md:py-16 lg:py-20 bg-[#E6E7E8]">
@@ -370,13 +387,10 @@ const sliderSettings = {
               Descubre todas las ventajas que NEFI ofrece para tu presencia digital profesional.
             </p>
           </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {features.map((feature, index) => (
               <div key={index} className="bg-[#0A2640] p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
-                <div className="mb-2 sm:mb-4 flex justify-center">
-                  {feature.icon}
-                </div>
+                <div className="mb-2 sm:mb-4 flex justify-center">{feature.icon}</div>
                 <h3 className="text-lg sm:text-xl font-semibold text-[#FFFFFF] mb-1 sm:mb-2 text-left font-montserrat">
                   {feature.title}
                 </h3>
@@ -400,8 +414,7 @@ const sliderSettings = {
               En solo tres simples pasos, activa tu perfil digital y compártelo al instante
             </p>
           </div>
-
-          <div className="flex justify-center items-center space-x-6 sm:space-x-8 md:space-x-12">
+          <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0 justify-center items-center">
             <div className="text-center">
               <div className="bg-[#00C2FF] rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-2 sm:mb-4">
                 <span className="text-lg sm:text-2xl font-bold text-[#FFFFFF] font-montserrat">1</span>
@@ -413,7 +426,7 @@ const sliderSettings = {
                 Crea tu cuenta y selecciona el plan que mejor se adapte a tus necesidades.
               </p>
             </div>
-            <div className="border-t-2 border-[#0A2640] w-16 sm:w-24"></div>
+            <div className="border-l-2 border-[#0A2640] h-12 md:border-l-0 md:border-t-2 md:w-16 md:h-0"></div>
             <div className="text-center">
               <div className="bg-[#00C2FF] rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-2 sm:mb-4">
                 <span className="text-lg sm:text-2xl font-bold text-[#FFFFFF] font-montserrat">2</span>
@@ -425,7 +438,7 @@ const sliderSettings = {
                 Agrega tu información, enlaces estratégicos y detalles clave para tu red de contactos.
               </p>
             </div>
-            <div className="border-t-2 border-[#0A2640] w-16 sm:w-24"></div>
+            <div className="border-l-2 border-[#0A2640] h-12 md:border-l-0 md:border-t-2 md:w-16 md:h-0"></div>
             <div className="text-center">
               <div className="bg-[#00C2FF] rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-2 sm:mb-4">
                 <span className="text-lg sm:text-2xl font-bold text-[#FFFFFF] font-montserrat">3</span>
@@ -433,7 +446,7 @@ const sliderSettings = {
               <h3 className="text-lg sm:text-xl font-semibold text-[#0A2640] mb-1 sm:mb-2 font-montserrat">
                 Conéctate al instante
               </h3>
-              <p className="text-sm sm:text-base text-[#FFFFFF] max-w-xs text-center font-lemon">
+              <p className="text-sm sm:text-base text-[#0A2640] max-w-xs text-center font-lemon">
                 Recibe tu tarjeta NFC y comparte tu perfil profesional con un solo toque.
               </p>
             </div>
@@ -442,77 +455,70 @@ const sliderSettings = {
       </section>
 
       {/* Sección de Planes y Precios */}
- 
       <section id="pricing" className="py-10 sm:py-12 md:py-16 lg:py-20 bg-[#0A2640] text-[#FFFFFF]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-6 sm:mb-8 md:mb-10 lg:mb-16">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#FFFFFF] mb-2 sm:mb-4 font-montserrat">
-            Planes y Precios
-          </h2>
-          <p className="text-lg sm:text-xl md:text-2xl text-[#FFFFFF] max-w-2xl sm:max-w-3xl mx-auto font-lemon">
-            Elige el plan que mejor se adapte a tus necesidades y comienza a disfrutar de todos los beneficios.
-          </p>
-        </div>
-
-        <div className="relative">
-          <Slider {...sliderSettings}>
-            {plans.map((plan, index) => (
-              <div
-                key={index}
-                className="px-2 flex justify-center"
-              >
-                <div
-                  className={`bg-white p-4 sm:p-6 rounded-lg shadow-md border border-gray-300 ${plan.popular ? 'border-2 border-[#00C2FF]' : ''}`}
-                  data-index={index}
-                  style={{ width: '280px', maxWidth: '100%' }}
-                >
-                  {plan.popular && (
-                    <div className="bg-[#00C2FF] text-white text-center py-1 font-medium text-sm rounded-t-lg">
-                      Más Popular
-                    </div>
-                  )}
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-[#0A2640] mb-1 sm:mb-2 font-montserrat">
-                      {plan.name}
-                    </h3>
-                    <div className="flex items-baseline mb-1 sm:mb-2">
-                      <span className="text-xl sm:text-2xl font-extrabold text-[#0A2640] font-montserrat">
-                        {plan.price}
-                      </span>
-                    </div>
-                    <ul className="space-y-1 sm:space-y-2 mb-2 sm:mb-4">
-                      {plan.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-start text-sm sm:text-base">
-                          {feature.included ? (
-                            <span className="text-[#00C2FF] mr-2">✓</span>
-                          ) : (
-                            <span className="text-[#B0B7C0] mr-2">x</span>
-                          )}
-                          <span className={feature.included ? 'text-[#0A2640]' : 'text-[#B0B7C0]'}>
-                            {feature.text}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                    <button
-                      className={`w-full py-2 rounded-md text-center font-medium text-sm sm:text-base transition duration-150 ${plan.popular
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-6 sm:mb-8 md:mb-10 lg:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#FFFFFF] mb-2 sm:mb-4 font-montserrat">
+              Planes y Precios
+            </h2>
+            <p className="text-lg sm:text-xl md:text-2xl text-[#FFFFFF] max-w-2xl sm:max-w-3xl mx-auto font-lemon">
+              Elige el plan que mejor se adapte a tus necesidades y comienza a disfrutar de todos los beneficios.
+            </p>
+          </div>
+          <div className="relative">
+            <Slider {...sliderSettings}>
+              {plans.map((plan, index) => (
+                <div key={index} className="px-2 flex justify-center">
+                  <div
+                    className={`bg-white p-4 sm:p-6 rounded-lg shadow-md border border-gray-300 ${plan.popular ? 'border-2 border-[#00C2FF]' : ''}`}
+                    data-index={index}
+                    style={{ width: '280px', maxWidth: '100%' }}
+                  >
+                    {plan.popular && (
+                      <div className="bg-[#00C2FF] text-white text-center py-1 font-medium text-sm rounded-t-lg">
+                        Más Popular
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-bold text-[#0A2640] mb-1 sm:mb-2 font-montserrat">
+                        {plan.name}
+                      </h3>
+                      <div className="flex items-baseline mb-1 sm:mb-2">
+                        <span className="text-xl sm:text-2xl font-extrabold text-[#0A2640] font-montserrat">
+                          {plan.price}
+                        </span>
+                      </div>
+                      <ul className="space-y-1 sm:space-y-2 mb-2 sm:mb-4">
+                        {plan.features.map((feature, featureIndex) => (
+                          <li key={featureIndex} className="flex items-start text-sm sm:text-base">
+                            {feature.included ? (
+                              <span className="text-[#00C2FF] mr-2">✓</span>
+                            ) : (
+                              <span className="text-[#B0B7C0] mr-2">x</span>
+                            )}
+                            <span className={feature.included ? 'text-[#0A2640]' : 'text-[#B0B7C0]'}>
+                              {feature.text}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      <button
+                        className={`w-full py-2 rounded-md text-center font-medium text-sm sm:text-base transition duration-150 ${plan.popular
                           ? 'bg-[#00C2FF] text-white hover:bg-[#99D9F2]'
                           : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                         }`}
-                      disabled={!plan.popular}
-                    >
-                      {plan.cta}
-                    </button>
+                        disabled={!plan.popular}
+                      >
+                        {plan.cta}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </Slider>
+              ))}
+            </Slider>
+          </div>
         </div>
-      </div>
-    </section>
-
-
+      </section>
 
       {/* Sección de Preguntas Frecuentes */}
       <section id="faq" className="py-10 sm:py-12 md:py-16 lg:py-20 bg-[#E6E7E8]">
@@ -525,7 +531,6 @@ const sliderSettings = {
               Respuestas de las preguntas más comunes sobre nuestros servicios.
             </p>
           </div>
-
           <div className="space-y-2 sm:space-y-4">
             {faqs.map((faq, index) => (
               <button
@@ -549,10 +554,9 @@ const sliderSettings = {
           </div>
         </div>
       </section>
+
       {/* Sección de Llamado a la Acción (CTA) */}
-      <section
-        className="py-10 sm:py-12 md:py-16 lg:py-20 bg-[#0A2640] text-[#FFFFFF] relative overflow-hidden"
-      >
+      <section className="py-10 sm:py-12 md:py-16 lg:py-20 bg-[#0A2640] text-[#FFFFFF] relative overflow-hidden">
         <div
           className="absolute inset-0"
           style={{
@@ -563,7 +567,6 @@ const sliderSettings = {
             opacity: '0.03',
             zIndex: 0,
             backgroundColor: '#0A2640',
-            transformOrigin: 'center', // Punto de rotación en el centro
           }}
         ></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">

@@ -1,4 +1,3 @@
-// src/context/ProfileContext.tsx
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface Profile {
@@ -22,6 +21,8 @@ interface Profile {
     visible: boolean;
   }[];
   plan: string;
+  profileViews: number;
+  profileUrl: string; // Agregamos profileUrl como string
 }
 
 interface ProfileContextType {
@@ -56,6 +57,8 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
       { platform: 'youtube', url: 'https://youtube.com/carlosrodriguez', icon: <></>, visible: false },
     ],
     plan: 'Plan Básico',
+    profileViews: 128,
+    profileUrl: 'nefi.com/carlos', // Inicializamos profileUrl con un valor
   });
 
   const updateProfile = (newProfile: Partial<Profile>) => {

@@ -1,28 +1,59 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useProfile } from '../context/ProfileContext'; // Ajusta la ruta
+import { auth, googleProvider, db } from "../config/firebaseConfig";
+import { doc, updateDoc } from 'firebase/firestore';
+
+// Definimos los tipos (esto debería estar en src/types/index.ts, pero lo incluyo aquí para claridad)
+interface SocialLink {
+  platform: string;
+  url: string;
+  visible: boolean;
+}
+
+interface Profile {
+  uid: string;
+  nombre: string;
+  correo: string;
+  telefono?: string;
+  direccion?: string;
+  acercade?: string;
+  redes?: SocialLink[];
+  plan: string;
+  username: string;
+  profileUrl: string;
+  avatar: string;
+}
+
+interface ProfileContextType {
+  profile: Profile | null;
+  updateProfile: (updatedProfile: Partial<Profile>) => Promise<void>;
+}
 
 const Profile = () => {
   const { id } = useParams<{ id: string }>(); // "id" coincide con la ruta /profile/:id
-  const { profile } = useProfile();
+  const { profile, updateProfile } = useProfile() as unknown as ProfileContextType;
 
-  // Estado para manejar la edición de redes sociales
-  const [isEditingSocials, setIsEditingSocials] = useState(false);
-  const [socials, setSocials] = useState(profile?.redes || []);
-  const [newSocial, setNewSocial] = useState({ platform: '', url: '' });
+  // Estados para edición de campos
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editedValue, setEditedValue] = useState<string>('');
 
-  // Lista de redes sociales disponibles para seleccionar
-  const availableSocials = ['LinkedIn', 'Twitter', 'Instagram', 'Facebook'];
+  // Estados para edición de imagen
+  const [isEditingAvatar, setIsEditingAvatar] = useState(false);
+  const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
+  const [newAvatarBase64, setNewAvatarBase64] = useState<string | null>(null);
 
-  // Estado para manejar las redes seleccionadas
-  const [selectedSocials, setSelectedSocials] = useState<string[]>(socials.map(s => s.platform));
+  // Estados para redes sociales
+  const [socials, setSocials] = useState<SocialLink[]>(profile?.redes || []);
+  const [isAddingSocial, setIsAddingSocial] = useState(false);
+  const [newSocial, setNewSocial] = useState<SocialLink>({ platform: '', url: '', visible: true });
+  const [editingSocialIndex, setEditingSocialIndex] = useState<number | null>(null);
 
-  // Actividades recientes (simuladas, puedes obtenerlas de una API o contexto)
-  const recentActivities = [
-    { action: 'Perfil visitado', user: 'María López', time: 'Hace 5 minutos' },
-    { action: 'Contacto guardado', user: 'Juan Pérez', time: 'Hace 2 horas' },
-    { action: 'Enlace clickeado', user: 'Ana García (LinkedIn)', time: 'Hace 1 día' },
-    { action: 'Perfil visitado', user: '', time: 'Hace 2 días' },
+  // Lista ampliada de redes sociales
+  const availableSocials = [
+    'LinkedIn', 'Twitter', 'Instagram', 'Facebook', 'YouTube', 'GitHub', 'Pinterest',
+    'Reddit', 'TikTok', 'Snapchat', 'WhatsApp', 'Telegram', 'Discord', 'Twitch', 'Medium',
+    'Behance', 'Dribbble', 'Spotify', 'SoundCloud', 'Vimeo'
   ];
 
   if (!profile) {
@@ -33,28 +64,107 @@ const Profile = () => {
     return <div className="min-h-screen flex items-center justify-center">No tienes acceso a este perfil.</div>;
   }
 
-  // Manejar la selección de redes sociales
-  const handleSocialSelection = (platform: string) => {
-    if (selectedSocials.includes(platform)) {
-      setSelectedSocials(selectedSocials.filter(s => s !== platform));
-    } else {
-      setSelectedSocials([...selectedSocials, platform]);
+  // Manejar la edición de un campo
+  const startEditing = (field: string, currentValue: string) => {
+    setEditingField(field);
+    setEditedValue(currentValue);
+  };
+
+  const saveField = async (field: string) => {
+    if (editedValue.trim() === '') return;
+    const profileRef = doc(db, 'profiles', profile.uid);
+    await updateDoc(profileRef, { [field]: editedValue });
+    await updateProfile({ ...profile, [field]: editedValue });
+    setEditingField(null);
+    setEditedValue('');
+  };
+
+  // Manejar la selección y conversión de la imagen a Base64
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setNewAvatarFile(file);
+
+      // Convertir la imagen a Base64
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewAvatarBase64(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  // Manejar el cambio en el formulario de nueva red social
+  // Guardar la imagen en Firebase como Base64
+  const saveAvatar = async () => {
+    if (newAvatarBase64) {
+      try {
+        const profileRef = doc(db, 'profiles', profile.uid);
+        await updateDoc(profileRef, { avatar: newAvatarBase64 });
+        await updateProfile({ ...profile, avatar: newAvatarBase64 });
+        setNewAvatarFile(null);
+        setNewAvatarBase64(null);
+        setIsEditingAvatar(false);
+      } catch (error) {
+        console.error('Error al guardar la imagen en Firebase:', error);
+      }
+    }
+  };
+
+  // Manejar selección de redes sociales (usando la propiedad visible)
+  const handleSocialSelection = async (index: number) => {
+    const updatedSocials = [...socials];
+    updatedSocials[index] = { ...updatedSocials[index], visible: !updatedSocials[index].visible };
+    setSocials(updatedSocials);
+    const profileRef = doc(db, 'profiles', profile.uid);
+    await updateDoc(profileRef, { redes: updatedSocials });
+    await updateProfile({ ...profile, redes: updatedSocials });
+  };
+
+  // Manejar cambio en el formulario de redes sociales
   const handleNewSocialChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setNewSocial({ ...newSocial, [e.target.name]: e.target.value });
   };
 
   // Agregar una nueva red social
-  const handleAddSocial = (e: React.FormEvent) => {
+  const handleAddSocial = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newSocial.platform && newSocial.url) {
-     // setSocials([...socials, newSocial]);
-      setSelectedSocials([...selectedSocials, newSocial.platform]);
-      setNewSocial({ platform: '', url: '' });
+      const updatedSocials = [...socials, { ...newSocial, visible: true }];
+      setSocials(updatedSocials);
+      const profileRef = doc(db, 'profiles', profile.uid);
+      await updateDoc(profileRef, { redes: updatedSocials });
+      await updateProfile({ ...profile, redes: updatedSocials });
+      setNewSocial({ platform: '', url: '', visible: true });
+      setIsAddingSocial(false);
     }
+  };
+
+  // Editar una red social existente
+  const startEditingSocial = (index: number) => {
+    setEditingSocialIndex(index);
+    setNewSocial(socials[index]);
+  };
+
+  const saveEditedSocial = async () => {
+    if (editingSocialIndex !== null && newSocial.platform && newSocial.url) {
+      const updatedSocials = [...socials];
+      updatedSocials[editingSocialIndex] = { ...newSocial, visible: socials[editingSocialIndex].visible };
+      setSocials(updatedSocials);
+      const profileRef = doc(db, 'profiles', profile.uid);
+      await updateDoc(profileRef, { redes: updatedSocials });
+      await updateProfile({ ...profile, redes: updatedSocials });
+      setEditingSocialIndex(null);
+      setNewSocial({ platform: '', url: '', visible: true });
+    }
+  };
+
+  // Eliminar una red social
+  const deleteSocial = async (index: number) => {
+    const updatedSocials = socials.filter((_, i) => i !== index);
+    setSocials(updatedSocials);
+    const profileRef = doc(db, 'profiles', profile.uid);
+    await updateDoc(profileRef, { redes: updatedSocials });
+    await updateProfile({ ...profile, redes: updatedSocials });
   };
 
   return (
@@ -62,8 +172,7 @@ const Profile = () => {
       {/* Encabezado del Dashboard */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <div className="space-x-2">
-           <button className="bg-blue-500 text-white px-4 py-2 rounded">Editar Perfil</button>
+        <div>
           <button className="bg-purple-500 text-white px-4 py-2 rounded">Ver Mi Perfil</button>
         </div>
       </div>
@@ -99,103 +208,301 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Información del Perfil y Actividad Reciente */}
+      {/* Información del Perfil y Redes Sociales */}
       <div className="grid grid-cols-2 gap-6">
         {/* Información del Perfil */}
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-bold mb-4">Información del Perfil</h2>
           <div className="flex items-center mb-4">
-            <img src={profile.avatar} alt={profile.nombre} className="w-16 h-16 rounded-full mr-4" />
-            <div>
-              <h3 className="text-lg font-semibold">{profile.nombre}</h3>
-              <p className="text-gray-600">{profile.correo}</p>
-            </div>
+            {isEditingAvatar ? (
+              <div className="flex flex-col">
+                <input type="file" accept="image/*" onChange={handleAvatarChange} className="mb-2" />
+                {newAvatarBase64 && (
+                  <img src={newAvatarBase64} alt="Preview" className="w-16 h-16 rounded-full mb-2" />
+                )}
+                <div className="flex space-x-2">
+                  <button onClick={saveAvatar} className="bg-green-500 text-white px-2 py-1 rounded">Save</button>
+                  <button onClick={() => setIsEditingAvatar(false)} className="bg-red-500 text-white px-2 py-1 rounded">Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <img src={profile.avatar} alt={profile.nombre} className="w-16 h-16 rounded-full mr-4" />
+                <span
+                  onClick={() => setIsEditingAvatar(true)}
+                  className="cursor-pointer text-gray-500 hover:text-gray-700"
+                >
+                  ✏️
+                </span>
+              </>
+            )}
           </div>
-          <p className="mb-2"><strong>URL del Perfil:</strong> <a href={profile.profileUrl} className="text-blue-500">{profile.profileUrl}</a></p>
-          <p className="mb-2"><strong>Plan Actual:</strong> <span className="text-blue-500">{profile.plan}</span></p>
-          <p className="mb-2"><strong>Tarjeta NFC:</strong> <span className="text-green-500">Activa</span></p>
-          <button className="mt-4 bg-gray-200 px-4 py-2 rounded">Gestionar Suscripción</button>
+
+          {/* Nombre */}
+          <div className="flex items-center mb-2">
+            <strong className="w-32">Nombre:</strong>
+            {editingField === 'nombre' ? (
+              <input
+                type="text"
+                value={editedValue}
+                onChange={(e) => setEditedValue(e.target.value)}
+                onBlur={() => saveField('nombre')}
+                onKeyPress={(e) => e.key === 'Enter' && saveField('nombre')}
+                className="border p-1 rounded"
+                autoFocus
+              />
+            ) : (
+              <>
+                <span>{profile.nombre}</span>
+                <span
+                  onClick={() => startEditing('nombre', profile.nombre)}
+                  className="ml-2 cursor-pointer text-gray-500 hover:text-gray-700"
+                >
+                  ✏️
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* Correo (no editable) */}
+          <div className="flex items-center mb-2">
+            <strong className="w-32">Correo:</strong>
+            <span>{profile.correo}</span>
+          </div>
+
+          {/* Teléfono */}
+          <div className="flex items-center mb-2">
+            <strong className="w-32">Teléfono:</strong>
+            {editingField === 'telefono' ? (
+              <input
+                type="text"
+                value={editedValue}
+                onChange={(e) => setEditedValue(e.target.value)}
+                onBlur={() => saveField('telefono')}
+                onKeyPress={(e) => e.key === 'Enter' && saveField('telefono')}
+                className="border p-1 rounded"
+                autoFocus
+              />
+            ) : (
+              <>
+                <span>{profile.telefono || 'No especificado'}</span>
+                <span
+                  onClick={() => startEditing('telefono', profile.telefono || '')}
+                  className="ml-2 cursor-pointer text-gray-500 hover:text-gray-700"
+                >
+                  ✏️
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* Dirección */}
+          <div className="flex items-center mb-2">
+            <strong className="w-32">Dirección:</strong>
+            {editingField === 'direccion' ? (
+              <input
+                type="text"
+                value={editedValue}
+                onChange={(e) => setEditedValue(e.target.value)}
+                onBlur={() => saveField('direccion')}
+                onKeyPress={(e) => e.key === 'Enter' && saveField('direccion')}
+                className="border p-1 rounded"
+                autoFocus
+              />
+            ) : (
+              <>
+                <span>{profile.direccion || 'No especificado'}</span>
+                <span
+                  onClick={() => startEditing('direccion', profile.direccion || '')}
+                  className="ml-2 cursor-pointer text-gray-500 hover:text-gray-700"
+                >
+                  ✏️
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* Acerca de */}
+          <div className="flex items-start mb-2">
+            <strong className="w-32">Acerca de:</strong>
+            {editingField === 'acercade' ? (
+              <textarea
+                value={editedValue}
+                onChange={(e) => setEditedValue(e.target.value)}
+                onBlur={() => saveField('acercade')}
+                className="border p-1 rounded w-full"
+                autoFocus
+              />
+            ) : (
+              <>
+                <span>{profile.acercade || 'Sin descripción'}</span>
+                <span
+                  onClick={() => startEditing('acercade', profile.acercade || '')}
+                  className="ml-2 cursor-pointer text-gray-500 hover:text-gray-700"
+                >
+                  ✏️
+                </span>
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Actividad Reciente */}
+        {/* Redes Sociales */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold mb-4">Actividad Reciente</h2>
-          <ul className="space-y-4">
-            {recentActivities.map((activity, index) => (
-              <li key={index} className="flex justify-between">
-                <div>
-                  <p className="font-semibold">{activity.action}</p>
-                  {activity.user && <p className="text-gray-600">{activity.user}</p>}
-                </div>
-                <p className="text-gray-500">{activity.time}</p>
-              </li>
-            ))}
-          </ul>
+          <h2 className="text-xl font-bold mb-4">Redes Sociales</h2>
+          {socials.length > 0 ? (
+            <ul className="mb-4">
+              {socials.map((social, index) => (
+                <li key={index} className="flex items-center mb-2">
+                  {editingSocialIndex === index ? (
+                    <div className="flex space-x-2 w-full">
+                      <select
+                        name="platform"
+                        value={newSocial.platform}
+                        onChange={handleNewSocialChange}
+                        className="border p-1 rounded"
+                      >
+                        <option value="">Selecciona una red social</option>
+                        {availableSocials.map((platform, i) => (
+                          <option key={i} value={platform}>{platform}</option>
+                        ))}
+                      </select>
+                      <input
+                        type="url"
+                        name="url"
+                        value={newSocial.url}
+                        onChange={handleNewSocialChange}
+                        placeholder="https://..."
+                        className="border p-1 rounded flex-1"
+                      />
+                      <button onClick={saveEditedSocial} className="bg-green-500 text-white px-2 py-1 rounded">Save</button>
+                      <button
+                        onClick={() => setEditingSocialIndex(null)}
+                        className="bg-red-500 text-white px-2 py-1 rounded"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <input
+                        type="checkbox"
+                        checked={social.visible}
+                        onChange={() => handleSocialSelection(index)}
+                        className="mr-2"
+                      />
+                      <span>{social.platform}: </span>
+                      <a href={social.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 ml-2">
+                        {social.url}
+                      </a>
+                      <span
+                        onClick={() => startEditingSocial(index)}
+                        className="ml-2 cursor-pointer text-gray-500 hover:text-gray-700"
+                      >
+                        ✏️
+                      </span>
+                      <span
+                        onClick={() => deleteSocial(index)}
+                        className="ml-2 cursor-pointer text-red-500 hover:text-red-700"
+                      >
+                        🗑️
+                      </span>
+                    </>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mb-4">No hay redes sociales configuradas.</p>
+          )}
+
+          {/* Formulario para agregar redes sociales */}
+          <button
+            onClick={() => setIsAddingSocial(!isAddingSocial)}
+            className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+          >
+            {isAddingSocial ? 'Cerrar' : 'Agregar Red Social'}
+          </button>
+
+          {isAddingSocial && (
+            <form onSubmit={handleAddSocial} className="flex space-x-4">
+              <select
+                name="platform"
+                value={newSocial.platform}
+                onChange={handleNewSocialChange}
+                className="border p-2 rounded"
+                required
+              >
+                <option value="">Selecciona una red social</option>
+                {availableSocials.map((platform, index) => (
+                  <option key={index} value={platform}>{platform}</option>
+                ))}
+              </select>
+              <input
+                type="url"
+                name="url"
+                value={newSocial.url}
+                onChange={handleNewSocialChange}
+                placeholder="https://..."
+                className="border p-2 rounded flex-1"
+                required
+              />
+              <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded">
+                Agregar
+              </button>
+            </form>
+          )}
         </div>
       </div>
 
-      {/* Sección de Redes Sociales */}
+      {/* Información de Cuenta */}
       <div className="bg-white p-6 rounded-lg shadow mt-6">
-        <h2 className="text-xl font-bold mb-4">Redes Sociales</h2>
-        {socials.length > 0 ? (
-          <ul className="mb-4">
-            {socials.map((social, index) => (
-              <li key={index} className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  checked={selectedSocials.includes(social.platform)}
-                  onChange={() => handleSocialSelection(social.platform)}
-                  className="mr-2"
-                />
-                <span>{social.platform}: </span>
-                <a href={social.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 ml-2">
-                  {social.url}
-                </a>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mb-4">No hay redes sociales configuradas.</p>
-        )}
-
-        {/* Formulario para agregar redes sociales */}
-        <button
-          onClick={() => setIsEditingSocials(!isEditingSocials)}
-          className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
-        >
-          {isEditingSocials ? 'Cerrar' : 'Agregar Red Social'}
-        </button>
-
-        {isEditingSocials && (
-          <form onSubmit={handleAddSocial} className="flex space-x-4">
-            <select
-              name="platform"
-              value={newSocial.platform}
-              onChange={handleNewSocialChange}
-              className="border p-2 rounded"
-              required
-            >
-              <option value="">Selecciona una red social</option>
-              {availableSocials.map((platform, index) => (
-                <option key={index} value={platform}>
-                  {platform}
-                </option>
-              ))}
-            </select>
+        <h2 className="text-xl font-bold mb-4">Información de Cuenta</h2>
+        {/* Nombre de usuario */}
+        <div className="flex items-center mb-2">
+          <strong className="w-32">Username:</strong>
+          {editingField === 'username' ? (
             <input
-              type="url"
-              name="url"
-              value={newSocial.url}
-              onChange={handleNewSocialChange}
-              placeholder="https://..."
-              className="border p-2 rounded flex-1"
-              required
+              type="text"
+              value={editedValue}
+              onChange={(e) => setEditedValue(e.target.value)}
+              onBlur={() => saveField('username')}
+              onKeyPress={(e) => e.key === 'Enter' && saveField('username')}
+              className="border p-1 rounded"
+              autoFocus
             />
-            <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded">
-              Agregar
-            </button>
-          </form>
-        )}
+          ) : (
+            <>
+              <span>{profile.username}</span>
+              <span
+                onClick={() => startEditing('username', profile.username)}
+                className="ml-2 cursor-pointer text-gray-500 hover:text-gray-700"
+              >
+                ✏️
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* URL del Perfil */}
+        <div className="flex items-center mb-2">
+          <strong className="w-32">URL del Perfil:</strong>
+          <a href={profile.profileUrl} className="text-blue-500">{profile.profileUrl}</a>
+        </div>
+
+        {/* Plan Actual (no editable) */}
+        <div className="flex items-center mb-2">
+          <strong className="w-32">Plan Actual:</strong>
+          <span className="text-blue-500">Básico</span>
+        </div>
+
+        {/* Tarjeta NFC */}
+        <div className="flex items-center mb-2">
+          <strong className="w-32">Tarjeta NFC:</strong>
+          <span className="text-green-500">Activa</span>
+        </div>
+
+        <button className="mt-4 bg-gray-200 px-4 py-2 rounded">Gestionar Suscripción</button>
       </div>
     </div>
   );

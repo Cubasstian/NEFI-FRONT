@@ -11,22 +11,116 @@ import {
   Edit,
   Trash,
   CheckCircle,
-  XCircle
+  XCircle,
+  Plus,
+  Save,
+  X
 } from 'lucide-react';
 import { usePlanStore } from '@/store/plan/usePlanStore';
+import { Plan as PlanType } from '@/types';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+interface Feature {
+  text: string;
+  included: boolean;
+}
+
+interface Stat {
+  label: string;
+  value: string | number;
+  icon: JSX.Element;
+}
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  plan: string;
+  status: string;
+  createdAt: string;
+  lastLogin: string;
+}
 
 const AdminPanel = () => {
-  const [activeTab, setActiveTab] = useState('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'subscriptions' | 'analytics' | 'plans' | 'settings'>('users');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [sortBy, setSortBy] = useState('createdAt');
-  const { plans, fetchPlans } = usePlanStore();
+  const [sortBy, setSortBy] = useState<keyof User>('createdAt');
+  const { plans, fetchPlans, updatePlan, addPlan, deletePlan } = usePlanStore();
+  const [editingPlan, setEditingPlan] = useState<PlanType | null>(null);
+  const [editedFeatures, setEditedFeatures] = useState<Feature[]>([]);
+  const [isCreatingPlan, setIsCreatingPlan] = useState(false);
+  const [newPlan, setNewPlan] = useState<Omit<PlanType, 'id'>>({
+    nombre: '',
+    precio: '',
+    features: [{ text: '', included: true }],
+    cta: '',
+    popular: false,
+  });
 
   useEffect(() => {
-    fetchPlans(); 
+    fetchPlans();
   }, [fetchPlans]);
- 
+
+  const handleEditPlan = (plan: PlanType) => {
+    setEditingPlan(plan);
+    setEditedFeatures(plan.features);
+  };
+
+  const handleSavePlan = async () => {
+    if (editingPlan) {
+      try {
+        const updatedPlan = { ...editingPlan, features: editedFeatures };
+        await updatePlan(String(updatedPlan.id), updatedPlan);
+        setEditingPlan(null);
+        toast.success('Plan actualizado con éxito');
+      } catch (error) {
+        console.error("Error al actualizar el plan:", error);
+        toast.error('Error al actualizar el plan');
+      }
+    }
+  };
+
+  const handleAddFeature = () => {
+    setEditedFeatures([...editedFeatures, { text: '', included: true }]);
+  };
+
+  const handleFeatureChange = (index: number, field: keyof Feature, value: string | boolean) => {
+    const updatedFeatures = [...editedFeatures];
+    updatedFeatures[index][field] = value as never;
+    setEditedFeatures(updatedFeatures);
+  };
+
+  const handleDeleteFeature = (index: number) => {
+    const updatedFeatures = editedFeatures.filter((_, i) => i !== index);
+    setEditedFeatures(updatedFeatures);
+  };
+
+  const handleCreatePlan = async () => {
+    try {
+      await addPlan(newPlan);
+      setIsCreatingPlan(false);
+      setNewPlan({ nombre: '', precio: '', features: [{ text: '', included: true }], cta: '', popular: false });
+      fetchPlans();
+      toast.success('Plan creado con éxito');
+    } catch (error) {
+      console.error("Error al crear el plan:", error);
+      toast.error('Error al crear el plan');
+    }
+  };
+
+  const handleDeletePlan = async (id: string) => {
+    try {
+      await deletePlan(id);
+      toast.success('Plan eliminado con éxito');
+    } catch (error) {
+      console.error("Error al eliminar el plan:", error);
+      toast.error('Error al eliminar el plan');
+    }
+  };
+
   // Mock data
-  const users = [
+  const users: User[] = [
     {
       id: 1,
       name: 'María González',
@@ -74,13 +168,13 @@ const AdminPanel = () => {
     }
   ];
 
-  const stats = [
+  const stats: Stat[] = [
     { label: 'Total Usuarios', value: 1254, icon: <Users className="h-6 w-6 text-indigo-600" /> },
     { label: 'Ingresos Mensuales', value: '€9,854', icon: <CreditCard className="h-6 w-6 text-green-600" /> },
     { label: 'Visitas a Perfiles', value: '45.2K', icon: <BarChart2 className="h-6 w-6 text-blue-600" /> }
   ];
 
-  const handleSort = (column: string) => {
+  const handleSort = (column: keyof User) => {
     if (sortBy === column) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -89,7 +183,7 @@ const AdminPanel = () => {
     }
   };
 
-  const getSortIcon = (column: string) => {
+  const getSortIcon = (column: keyof User) => {
     if (sortBy !== column) return null;
 
     return sortDirection === 'asc' ?
@@ -100,6 +194,7 @@ const AdminPanel = () => {
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <ToastContainer />
         <div className="md:flex md:items-center md:justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Panel de Administración</h1>
@@ -109,7 +204,6 @@ const AdminPanel = () => {
           </div>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {stats.map((stat, index) => (
             <div key={index} className="bg-white overflow-hidden shadow rounded-lg">
@@ -136,14 +230,13 @@ const AdminPanel = () => {
           ))}
         </div>
 
-        {/* Tabs */}
         <div className="border-b border-gray-200 mb-6">
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('users')}
               className={`${activeTab === 'users'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
             >
               <Users className="h-5 w-5 mr-2" />
@@ -152,8 +245,8 @@ const AdminPanel = () => {
             <button
               onClick={() => setActiveTab('subscriptions')}
               className={`${activeTab === 'subscriptions'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
             >
               <CreditCard className="h-5 w-5 mr-2" />
@@ -162,8 +255,8 @@ const AdminPanel = () => {
             <button
               onClick={() => setActiveTab('analytics')}
               className={`${activeTab === 'analytics'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
             >
               <BarChart2 className="h-5 w-5 mr-2" />
@@ -172,8 +265,8 @@ const AdminPanel = () => {
             <button
               onClick={() => setActiveTab('plans')}
               className={`${activeTab === 'plans'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
             >
               <BarChart2 className="h-5 w-5 mr-2" />
@@ -182,8 +275,8 @@ const AdminPanel = () => {
             <button
               onClick={() => setActiveTab('settings')}
               className={`${activeTab === 'settings'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
             >
               <Settings className="h-5 w-5 mr-2" />
@@ -192,7 +285,6 @@ const AdminPanel = () => {
           </nav>
         </div>
 
-        {/* Content */}
         {activeTab === 'users' && (
           <div className="bg-white shadow rounded-lg overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -249,7 +341,7 @@ const AdminPanel = () => {
                       </div>
                     </th>
                     <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Acciones
+                        Acciones
                     </th>
                   </tr>
                 </thead>
@@ -269,8 +361,8 @@ const AdminPanel = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.plan === 'Premium' ? 'bg-purple-100 text-purple-800' :
-                            user.plan === 'Business' ? 'bg-blue-100 text-blue-800' :
-                              'bg-gray-100 text-gray-800'
+                          user.plan === 'Business' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'
                           }`}>
                           {user.plan}
                         </span>
@@ -340,16 +432,237 @@ const AdminPanel = () => {
         {activeTab === 'plans' && (
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Planes</h3>
-            <p className="text-gray-500">Contenido de planes en desarrollo.</p>
+            <button
+              onClick={() => setIsCreatingPlan(true)}
+              className="inline-flex items-center px-3 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-100 hover:bg-blue-50"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Crear Plan
+            </button>
+            {plans && plans.length > 0 ? (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nombre
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Precio
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Características
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      CTA
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {plans.map((plan) => (
+                    <tr key={plan.id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{plan.nombre}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">{plan.precio}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <ul className="list-disc list-inside">
+                          {plan.features.map((feature, index) => (
+                            <li key={index} className="text-sm text-gray-500">
+                              {feature.text} {feature.included ? '(Incluido)' : '(No incluido)'}
+                            </li>
+                          ))}
+                        </ul>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">{plan.cta}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button
+                          onClick={() => handleEditPlan(plan)}
+                          className="text-indigo-600 hover:text-indigo-900"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeletePlan(String(plan.id))}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <Trash className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-gray-500">No hay planes disponibles.</p>
+            )}
           </div>
         )}
 
-        {activeTab === 'settings' && (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Configuración</h3>
-            <p className="text-gray-500">Contenido de configuración en desarrollo.</p>
+        {/* Modal para editar planes */}
+        {editingPlan && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center">
+            <div className="bg-white rounded-lg p-6 w-1/2">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Editar Plan</h3>
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={editingPlan.nombre}
+                  onChange={(e) => setEditingPlan({ ...editingPlan, nombre: e.target.value })}
+                  className="border border-gray-300 rounded-md p-2 w-full"
+                />
+                <input
+                  type="text"
+                  value={editingPlan.precio}
+                  onChange={(e) => setEditingPlan({ ...editingPlan, precio: e.target.value })}
+                  className="border border-gray-300 rounded-md p-2 w-full"
+                />
+                <input
+                  type="text"
+                  value={editingPlan.cta}
+                  onChange={(e) => setEditingPlan({ ...editingPlan, cta: e.target.value })}
+                  className="border border-gray-300 rounded-md p-2 w-full"
+                />
+                <ul className="space-y-2">
+                  {editedFeatures.map((feature, index) => (
+                    <li key={index} className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={feature.text}
+                        onChange={(e) => handleFeatureChange(index, 'text', e.target.value)}
+                        className="border border-gray-300 rounded-md p-1 w-full"
+                      />
+                      <select
+                        value={feature.included.toString()}
+                        onChange={(e) => handleFeatureChange(index, 'included', e.target.value === 'true')}
+                        className="border border-gray-300 rounded-md p-1"
+                      >
+                        <option value="true">Incluido</option>
+                        <option value="false">No incluido</option>
+                      </select>
+                      <button
+                        onClick={() => handleDeleteFeature(index)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={handleAddFeature}
+                  className="mt-4 inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Añadir Característica
+                </button>
+              </div>
+              <div className="mt-4 flex justify-end space-x-2">
+                <button
+                  onClick={handleSavePlan}
+                  className="px-3 py-2 border border-green-300 rounded-md text-sm font-medium text-green-700 bg-green-100 hover:bg-green-500"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Guardar
+                </button>
+                <button
+                  onClick={() => setEditingPlan(null)}
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
           </div>
         )}
+
+        {/* Modal para crear planes */}
+        {isCreatingPlan && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center">
+            <div className="bg-white rounded-lg p-6 w-1/2">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Crear Nuevo Plan</h3>
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  placeholder="Nombre del plan"
+                  value={newPlan.nombre}
+                  onChange={(e) => setNewPlan({ ...newPlan, nombre: e.target.value })}
+                  className="border border-gray-300 rounded-md p-2 w-full"
+                />
+                <input
+                  type="text"
+                  placeholder="Precio"
+                  value={newPlan.precio}
+                  onChange={(e) => setNewPlan({ ...newPlan, precio: e.target.value })}
+                  className="border border-gray-300 rounded-md p-2 w-full"
+                />
+                <input
+                  type="text"
+                  placeholder="CTA"
+                  value={newPlan.cta}
+                  onChange={(e) => setNewPlan({ ...newPlan, cta: e.target.value })}
+                  className="border border-gray-300 rounded-md p-2 w-full"
+                />
+                <ul className="space-y-2">
+                  {newPlan.features.map((feature, index) => (
+                    <li key={index} className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={feature.text}
+                        onChange={(e) => setNewPlan({ ...newPlan, features: newPlan.features.map((f, i) => i === index ? { ...f, text: e.target.value } : f) })}
+                        className="border border-gray-300 rounded-md p-1 w-full"
+                      />
+                      <select
+                        value={feature.included.toString()}
+                        onChange={(e) => setNewPlan({ ...newPlan, features: newPlan.features.map((f, i) => i === index ? { ...f, included: e.target.value === 'true' } : f) })}
+                        className="border border-gray-300 rounded-md p-1"
+                      >
+                        <option value="true">Incluido</option>
+                        <option value="false">No incluido</option>
+                      </select>
+                      <button
+                        onClick={() => setNewPlan({ ...newPlan, features: newPlan.features.filter((_, i) => i !== index) })}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => setNewPlan({ ...newPlan, features: [...newPlan.features, { text: '', included: true }] })}
+                  className="mt-4 inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Añadir Característica
+                </button>
+              </div>
+              <div className="mt-4 flex justify-end space-x-2">
+                <button
+                  onClick={handleCreatePlan}
+                  className="px-3 py-2 border border-green-300 rounded-md text-sm font-medium text-green-700 bg-green-100 hover:bg-green-500"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Guardar
+                </button>
+                <button
+                  onClick={() => setIsCreatingPlan(false)}
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ... (resto del contenido) ... */}
       </div>
     </div>
   );

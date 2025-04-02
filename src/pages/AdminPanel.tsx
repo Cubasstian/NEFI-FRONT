@@ -17,6 +17,7 @@ import {
   X
 } from 'lucide-react';
 import { usePlanStore } from '@/store/plan/usePlanStore';
+import { useAuthStore } from "@/store/auth/userAuthStore";
 import { Plan as PlanType } from '@/types';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';

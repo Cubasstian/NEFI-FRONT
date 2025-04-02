@@ -1,5 +1,5 @@
 // src/pages/Login.tsx
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
 import { useFormik } from 'formik';
@@ -12,7 +12,7 @@ import { useAuthStore } from '@/store/auth/userAuthStore';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { loginWithEmail, loginWithGoogle, isLoading, error, checkAuth } = useAuthStore();
+  const { loginWithEmail, loginWithGoogle, isLoading, error } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const correoInputRef = useRef<HTMLInputElement>(null);
@@ -47,12 +47,7 @@ const Login = () => {
       }
     },
   });
-  // useEffect(() => {
-  //   checkAuth(); 
-  //   if (correoInputRef.current) {
-  //     correoInputRef.current.focus();
-  //   }
-  // }, [checkAuth]);
+
 
   const handleGoogleSignIn = async () => {
     try {

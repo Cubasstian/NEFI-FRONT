@@ -5,7 +5,6 @@ import {
   signOut, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
-  fetchSignInMethodsForEmail
 } from "firebase/auth";
 import { collection, doc, getDoc, setDoc, updateDoc, deleteDoc, getDocs } from "firebase/firestore";
 import { UserData, EmpresaData } from "../types";
@@ -13,21 +12,21 @@ import { UserData, EmpresaData } from "../types";
 export const authService = {
 
   registerWithEmail: async (email: string, password: string, data: UserData | EmpresaData, type: "user" | "empresa"): Promise<UserData | EmpresaData> => {
-    console.log("Iniciando registro con correo:", email); // Depuración
+   
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       const uid = user.uid;
-      console.log("Usuario creado en Firebase Auth con UID:", uid); // Depuración
+    
 
       const collectionName = type === "user" ? "usuarios" : "empresas";
       const ref = doc(collection(db, collectionName), uid);
       await setDoc(ref, { ...data, uid, correo: email, estado: true });
-      console.log("Documento creado en Firestore en:", collectionName, "con UID:", uid); // Depuración
+     
 
       const profileSnap = await getDoc(ref);
       const profileData = profileSnap.data() as UserData | EmpresaData;
-      console.log("Perfil registrado:", profileData); // Depuración
+    
       return profileData;
     } catch (error: any) {
       console.error("Error en registerWithEmail:", error); // Depuración
@@ -64,43 +63,33 @@ export const authService = {
     return userSnap.data() as UserData;
   },
 
-loginWithEmail: async (email: string, password: string): Promise<UserData | EmpresaData> => {
+  loginWithEmail: async (email: string, password: string): Promise<UserData | EmpresaData> => {
     try {
-      console.log("Verificando métodos de inicio para:", email); // Depuración
-      const signInMethods = await fetchSignInMethodsForEmail(auth, email);
-      console.log("Métodos de inicio encontrados:", signInMethods); // Depuración
-
-      if (signInMethods.length === 0) {
-        throw new Error("Usuario no registrado en Firebase Authentication");
-      }
-      if (signInMethods.includes("google.com")) {
-        throw new Error("Este usuario está registrado con Google. Usa esa opción para iniciar sesión.");
-      }
-
+      console.log("Intentando login con correo:", email, "y contraseña:", password); // Depuración
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       const uid = user.uid;
-      console.log("Usuario autenticado con UID:", uid); // Depuración
-
+      console.log("Usuario autenticado con UID:", uid);
+  
       const userRef = doc(db, "usuarios", uid);
       const userSnap = await getDoc(userRef);
-      console.log("Documento en 'usuarios' existe:", userSnap.exists()); // Depuración
-
+      console.log("Documento en 'usuarios' existe:", userSnap.exists());
+  
       if (userSnap.exists()) {
         return userSnap.data() as UserData;
       }
-
+  
       const empresaRef = doc(db, "empresas", uid);
       const empresaSnap = await getDoc(empresaRef);
-      console.log("Documento en 'empresas' existe:", empresaSnap.exists()); // Depuración
-
+      console.log("Documento en 'empresas' existe:", empresaSnap.exists());
+  
       if (empresaSnap.exists()) {
         return empresaSnap.data() as EmpresaData;
       }
-
+  
       throw new Error("Usuario o empresa no encontrados en Firestore");
     } catch (error: any) {
-      console.error("Error en authService.loginWithEmail:", error); // Depuración
+      console.error("Error en authService.loginWithEmail:", error);
       throw new Error(error.message || "Credenciales inválidas");
     }
   },

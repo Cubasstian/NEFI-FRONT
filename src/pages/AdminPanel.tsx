@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { 
-  Users, 
-  CreditCard, 
-  BarChart2, 
-  Settings, 
-  Search, 
-  Filter, 
-  ChevronDown, 
+import {
+  Users,
+  CreditCard,
+  BarChart2,
+  Settings,
+  Search,
+  Filter,
+  ChevronDown,
   ChevronUp,
   Edit,
   Trash,
@@ -18,62 +18,62 @@ const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('users');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [sortBy, setSortBy] = useState('createdAt');
-  
+
   // Mock data
   const users = [
-    { 
-      id: 1, 
-      name: 'María González', 
-      email: 'maria@example.com', 
-      plan: 'Premium', 
-      status: 'active', 
-      createdAt: '2023-05-15', 
-      lastLogin: '2023-06-10' 
+    {
+      id: 1,
+      name: 'María González',
+      email: 'maria@example.com',
+      plan: 'Premium',
+      status: 'active',
+      createdAt: '2023-05-15',
+      lastLogin: '2023-06-10'
     },
-    { 
-      id: 2, 
-      name: 'Juan Pérez', 
-      email: 'juan@example.com', 
-      plan: 'Free', 
-      status: 'active', 
-      createdAt: '2023-04-20', 
-      lastLogin: '2023-06-12' 
+    {
+      id: 2,
+      name: 'Juan Pérez',
+      email: 'juan@example.com',
+      plan: 'Free',
+      status: 'active',
+      createdAt: '2023-04-20',
+      lastLogin: '2023-06-12'
     },
-    { 
-      id: 3, 
-      name: 'Ana Rodríguez', 
-      email: 'ana@example.com', 
-      plan: 'Premium', 
-      status: 'inactive', 
-      createdAt: '2023-03-10', 
-      lastLogin: '2023-05-01' 
+    {
+      id: 3,
+      name: 'Ana Rodríguez',
+      email: 'ana@example.com',
+      plan: 'Premium',
+      status: 'inactive',
+      createdAt: '2023-03-10',
+      lastLogin: '2023-05-01'
     },
-    { 
-      id: 4, 
-      name: 'Carlos López', 
-      email: 'carlos@example.com', 
-      plan: 'Business', 
-      status: 'active', 
-      createdAt: '2023-06-01', 
-      lastLogin: '2023-06-15' 
+    {
+      id: 4,
+      name: 'Carlos López',
+      email: 'carlos@example.com',
+      plan: 'Business',
+      status: 'active',
+      createdAt: '2023-06-01',
+      lastLogin: '2023-06-15'
     },
-    { 
-      id: 5, 
-      name: 'Laura Martínez', 
-      email: 'laura@example.com', 
-      plan: 'Premium', 
-      status: 'active', 
-      createdAt: '2023-02-28', 
-      lastLogin: '2023-06-14' 
+    {
+      id: 5,
+      name: 'Laura Martínez',
+      email: 'laura@example.com',
+      plan: 'Premium',
+      status: 'active',
+      createdAt: '2023-02-28',
+      lastLogin: '2023-06-14'
     }
   ];
-  
+
   const stats = [
     { label: 'Total Usuarios', value: 1254, icon: <Users className="h-6 w-6 text-indigo-600" /> },
     { label: 'Ingresos Mensuales', value: '€9,854', icon: <CreditCard className="h-6 w-6 text-green-600" /> },
     { label: 'Visitas a Perfiles', value: '45.2K', icon: <BarChart2 className="h-6 w-6 text-blue-600" /> }
   ];
-  
+
   const handleSort = (column: string) => {
     if (sortBy === column) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -82,12 +82,12 @@ const AdminPanel = () => {
       setSortDirection('asc');
     }
   };
-  
+
   const getSortIcon = (column: string) => {
     if (sortBy !== column) return null;
-    
-    return sortDirection === 'asc' ? 
-      <ChevronUp className="h-4 w-4" /> : 
+
+    return sortDirection === 'asc' ?
+      <ChevronUp className="h-4 w-4" /> :
       <ChevronDown className="h-4 w-4" />;
   };
 
@@ -102,7 +102,7 @@ const AdminPanel = () => {
             </p>
           </div>
         </div>
-        
+
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {stats.map((stat, index) => (
@@ -129,57 +129,63 @@ const AdminPanel = () => {
             </div>
           ))}
         </div>
-        
+
         {/* Tabs */}
         <div className="border-b border-gray-200 mb-6">
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('users')}
-              className={`${
-                activeTab === 'users'
+              className={`${activeTab === 'users'
                   ? 'border-indigo-500 text-indigo-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
             >
               <Users className="h-5 w-5 mr-2" />
               Usuarios
             </button>
             <button
               onClick={() => setActiveTab('subscriptions')}
-              className={`${
-                activeTab === 'subscriptions'
+              className={`${activeTab === 'subscriptions'
                   ? 'border-indigo-500 text-indigo-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
             >
               <CreditCard className="h-5 w-5 mr-2" />
               Suscripciones
             </button>
             <button
               onClick={() => setActiveTab('analytics')}
-              className={`${
-                activeTab === 'analytics'
+              className={`${activeTab === 'analytics'
                   ? 'border-indigo-500 text-indigo-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
             >
               <BarChart2 className="h-5 w-5 mr-2" />
               Estadísticas
             </button>
             <button
-              onClick={() => setActiveTab('settings')}
-              className={`${
-                activeTab === 'settings'
+              onClick={() => setActiveTab('plans')}
+              className={`${activeTab === 'plans'
                   ? 'border-indigo-500 text-indigo-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+            >
+              <BarChart2 className="h-5 w-5 mr-2" />
+              Planes
+            </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`${activeTab === 'settings'
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
             >
               <Settings className="h-5 w-5 mr-2" />
               Configuración
             </button>
           </nav>
         </div>
-        
+
         {/* Content */}
         {activeTab === 'users' && (
           <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -256,18 +262,16 @@ const AdminPanel = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          user.plan === 'Premium' ? 'bg-purple-100 text-purple-800' :
-                          user.plan === 'Business' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.plan === 'Premium' ? 'bg-purple-100 text-purple-800' :
+                            user.plan === 'Business' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                          }`}>
                           {user.plan}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
                           {user.status === 'active' ? (
                             <CheckCircle className="mr-1 h-3 w-3" />
                           ) : (
@@ -312,21 +316,28 @@ const AdminPanel = () => {
             </div>
           </div>
         )}
-        
+
         {activeTab === 'subscriptions' && (
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Gestión de Suscripciones</h3>
             <p className="text-gray-500">Contenido de gestión de suscripciones en desarrollo.</p>
           </div>
         )}
-        
+
         {activeTab === 'analytics' && (
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Estadísticas</h3>
             <p className="text-gray-500">Contenido de estadísticas en desarrollo.</p>
           </div>
         )}
-        
+
+        {activeTab === 'plans' && (
+          <div className="bg-white shadow rounded-lg p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Planes</h3>
+            <p className="text-gray-500">Contenido de planes en desarrollo.</p>
+          </div>
+        )}
+
         {activeTab === 'settings' && (
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Configuración</h3>

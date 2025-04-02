@@ -6,7 +6,7 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
 } from "firebase/auth";
-import { collection, doc, getDoc, setDoc, updateDoc, deleteDoc, getDocs } from "firebase/firestore";
+import { collection, doc, getDoc, setDoc, updateDoc, deleteDoc, getDocs, query, where } from "firebase/firestore";
 import { UserData, EmpresaData } from "../types";
 
 export const authService = {
@@ -127,4 +127,31 @@ export const authService = {
 
     return { users: usersList, empresas: empresasList };
   },
+
+  fetchProfileByUsername: async (username: string): Promise<UserData | EmpresaData | null> => {
+    try {
+      // Buscar en la colección "usuarios"
+      const usersQuery = query(collection(db, "usuarios"), where("username", "==", username));
+      const usersSnapshot = await getDocs(usersQuery);
+      if (!usersSnapshot.empty) {
+        const userDoc = usersSnapshot.docs[0];
+        return userDoc.data() as UserData;
+      }
+
+      // Buscar en la colección "empresas"
+      const empresasQuery = query(collection(db, "empresas"), where("username", "==", username));
+      const empresasSnapshot = await getDocs(empresasQuery);
+      if (!empresasSnapshot.empty) {
+        const empresaDoc = empresasSnapshot.docs[0];
+        return empresaDoc.data() as EmpresaData;
+      }
+
+      // Si no se encuentra en ninguna colección
+      return null;
+    } catch (error: any) {
+      console.error("Error en fetchProfileByUsername:", error);
+      throw new Error(error.message || "Error al obtener el perfil por username");
+    }
+  },
+
 };

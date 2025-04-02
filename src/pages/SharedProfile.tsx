@@ -1,15 +1,45 @@
 import React, { useEffect, useState } from 'react';
 import { Share2, Phone, Mail, Instagram, Youtube, Facebook, Calendar, Users, Globe, BarChart2, UserPlus } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { EmpresaData, UserData } from '@/types';
+import { authService } from '@/services/authService';
 
 const SharedProfile = () => {
+  const { username } = useParams<{ username: string }>(); // Obtiene el username de la URL
+  const [profile, setProfile] = useState<UserData | EmpresaData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [animationPosition, setAnimationPosition] = useState(0);
-  
+
+  const fetchProfile = async () => {
+    if (!username) return;
+    setLoading(true);
+    try {
+      const profileData = await authService.fetchProfileByUsername(username);
+      if (profileData) {
+        setProfile(profileData);
+      } else {
+        setError("Perfil no encontrado");
+      }
+    } catch (err: any) {
+      setError(err.message || "Error al cargar el perfil");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      setAnimationPosition(prev => (prev + 1) % 100);
-    }, 50);
-    return () => clearInterval(interval);
+    fetchProfile();
   }, []);
+  
+  console.log("Perfil", profile)
+
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setAnimationPosition(prev => (prev + 1) % 100);
+  //   }, 50);
+  //   return () => clearInterval(interval);
+  // }, []);
   
   const apps = [
     { 
@@ -74,6 +104,14 @@ const SharedProfile = () => {
     }
   ];
 
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Cargando perfil...</div>;
+  }
+
+  if (error || !profile) {
+    return <div className="min-h-screen flex items-center justify-center">{error || "Perfil no encontrado"}</div>;
+  }
+
   return (
     <div className="flex flex-col items-center min-h-screen pb-16 relative overflow-hidden">
       <div 
@@ -109,8 +147,8 @@ const SharedProfile = () => {
             />
           </div>
           <div className="ml-6 text-left">
-            <h2 className="text-xl font-semibold">Carlos Rodríguez</h2>
-            <p className="text-sm text-gray-500">Desarrollador Full Stack</p>
+            <h2 className="text-xl font-semibold">{profile?.nombre}</h2>
+            <p className="text-sm text-gray-500">{profile?.stack}</p>
           </div>
         </div>
 

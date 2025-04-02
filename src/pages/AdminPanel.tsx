@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Users,
   CreditCard,
@@ -13,12 +13,18 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
+import { usePlanStore } from '@/store/plan/usePlanStore';
 
 const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('users');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [sortBy, setSortBy] = useState('createdAt');
+  const { plans, fetchPlans } = usePlanStore();
 
+  useEffect(() => {
+    fetchPlans(); 
+  }, [fetchPlans]);
+ 
   // Mock data
   const users = [
     {

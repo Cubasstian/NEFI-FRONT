@@ -6,7 +6,6 @@ import { FcGoogle } from 'react-icons/fc';
 import { useFormik } from "formik";
 import * as Yup from "yup"; 
 import { UserData, EmpresaData } from '../types';
-import { auth } from '@/config/firebaseConfig';
 import { useAuthStore } from '@/store/auth/userAuthStore';
 import { usePlanStore } from '@/store/plan/usePlanStore';
 

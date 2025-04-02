@@ -1,10 +1,6 @@
-// src/store/usePlanStore.ts
 import { create } from "zustand";
-
-import { collection, doc, getDocs, setDoc, deleteDoc, updateDoc } from "firebase/firestore";
 import { Plan } from "@/types";
-import { db } from "@/config/firebaseConfig";
-
+import { planService } from "@/services/planService"; // Ajusta la ruta
 
 interface PlanState {
   plans: Plan[];
@@ -24,16 +20,11 @@ export const usePlanStore = create<PlanState>((set) => ({
   fetchPlans: async () => {
     set({ isLoading: true, error: null });
     try {
-      const plansCollection = collection(db, "planes");
-      const plansSnapshot = await getDocs(plansCollection);
-      const plansList = plansSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Plan[];
-      set({ plans: plansList });
+      const plans = await planService.fetchPlans();
+      set({ plans });
     } catch (error: any) {
       set({ error: error.message });
-      console.error("Error al obtener planes:", error);
+      console.error("Error en usePlanStore.fetchPlans:", error);
     } finally {
       set({ isLoading: false });
     }
@@ -42,12 +33,11 @@ export const usePlanStore = create<PlanState>((set) => ({
   addPlan: async (plan) => {
     set({ isLoading: true, error: null });
     try {
-      const newPlanRef = doc(collection(db, "planes"));
-      await setDoc(newPlanRef, plan);
-      set((state) => ({ plans: [...state.plans, { id: newPlanRef.id, ...plan }] }));
+      const newPlanId = await planService.addPlan(plan);
+      set((state) => ({ plans: [...state.plans, { id: newPlanId, ...plan }] }));
     } catch (error: any) {
       set({ error: error.message });
-      console.error("Error al agregar plan:", error);
+      console.error("Error en usePlanStore.addPlan:", error);
     } finally {
       set({ isLoading: false });
     }
@@ -56,14 +46,13 @@ export const usePlanStore = create<PlanState>((set) => ({
   updatePlan: async (id, plan) => {
     set({ isLoading: true, error: null });
     try {
-      const planRef = doc(db, "planes", id);
-      await updateDoc(planRef, plan);
+      await planService.updatePlan(id, plan);
       set((state) => ({
         plans: state.plans.map((p) => (p.id === id ? { ...p, ...plan } : p)),
       }));
     } catch (error: any) {
       set({ error: error.message });
-      console.error("Error al actualizar plan:", error);
+      console.error("Error en usePlanStore.updatePlan:", error);
     } finally {
       set({ isLoading: false });
     }
@@ -72,12 +61,11 @@ export const usePlanStore = create<PlanState>((set) => ({
   deletePlan: async (id) => {
     set({ isLoading: true, error: null });
     try {
-      const planRef = doc(db, "planes", id);
-      await deleteDoc(planRef);
+      await planService.deletePlan(id);
       set((state) => ({ plans: state.plans.filter((p) => p.id !== id) }));
     } catch (error: any) {
       set({ error: error.message });
-      console.error("Error al eliminar plan:", error);
+      console.error("Error en usePlanStore.deletePlan:", error);
     } finally {
       set({ isLoading: false });
     }

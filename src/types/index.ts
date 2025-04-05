@@ -5,12 +5,13 @@ export interface UserData {
     telefono: string;
     direccion: string;
     stack: string;
-    plan: string; // ID o nombre del plan
+    plan: string; 
     estado: boolean;
     rol: "USER" | "ADMIN";
     acercade: string;
     redes: SocialLink[];
     username: string;
+    avatar?: string
   }
   
   export interface EmpresaData {
@@ -20,19 +21,24 @@ export interface UserData {
     telefono: string;
     direccion: string;
     stack: string;
-    plan: string; // ID o nombre del plan
+    plan: string;
     estado: boolean;
     rol: "USER" | "ADMIN";
     acercade: string;
     redes: SocialLink[];
     nit: string;
     username: string;
+    avatar?: string
   }
   
   export interface SocialLink {
-    platform: string;
-    url: string;
-    visible: boolean;
+    platform?: string;
+    url?: string;
+    name?:string
+    visible?: boolean;
+    icon?: string | undefined
+    bgColor?: string
+    category?: string
   }
   
   export interface Plan {

@@ -32,14 +32,6 @@ const SharedProfile = () => {
     fetchProfile();
   }, []);
   
-  console.log("Perfil", profile)
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setAnimationPosition(prev => (prev + 1) % 100);
-  //   }, 50);
-  //   return () => clearInterval(interval);
-  // }, []);
   
   const apps = [
     { 
@@ -155,7 +147,7 @@ const SharedProfile = () => {
         <div className="text-center mt-4 px-8">
           <h3 className="text-md font-medium text-gray-700">Acerca de mí</h3>
           <p className="text-sm text-gray-600 mt-1">
-            Desarrollador apasionado por crear soluciones tecnológicas que mejoren la vida de las personas. Especializado en React, Node.js y arquitecturas cloud.
+            { profile.acercade }
           </p>
         </div>
 

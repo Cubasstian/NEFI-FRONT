@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useState } from 'react';
 import { useAuthStore } from '../store/auth/userAuthStore'; // Ajusta la ruta
 import { UserData, EmpresaData } from '../types'; // Ajusta la ruta
 
@@ -13,12 +13,14 @@ interface ProfileContextType {
   profile: Profile | null;
   updateProfile: (newProfile: Partial<Profile>) => void;
   updateSocial: (index: number, updates: Partial<{ url: string; visible: boolean }>) => void;
+  isLoading: boolean;
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
 export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { profile: authProfile, updateProfile: updateAuthProfile } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
 
   // Combinamos los datos del usuario autenticado con valores por defecto para campos adicionales
   const [profile, setProfile] = React.useState<Profile | null>(() => {
@@ -61,31 +63,48 @@ export const ProfileProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [authProfile]);
 
-  const updateProfile = (newProfile: Partial<Profile>) => {
-    if (!profile) return;
-    const updatedProfile = { ...profile, ...newProfile };
-    setProfile(updatedProfile);
-    // Actualizamos en useAuthStore y Firestore
-    updateAuthProfile(updatedProfile.uid, newProfile, 'user'); // Asumimos tipo "user" por ahora
+  const updateProfile = async (newProfile: Partial<Profile>) => {
+    if (!profile) throw new Error('No profile to update');
+    setIsLoading(true);
+    try {
+      const updatedProfile = { ...profile, ...newProfile };
+      setProfile(updatedProfile);
+      // Actualizamos en useAuthStore y Firestore
+      await updateAuthProfile(updatedProfile.uid, newProfile, 'user');
+    } catch (error) {
+      console.error('[ProfileContext] Error al actualizar perfil:', error);
+      // Revertimos el cambio optimista si falla
+      setProfile(profile);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const updateSocial = (index: number, updates: Partial<{ url: string; visible: boolean }>) => {
-    if (!profile || !profile.redes) return;
-    const updatedSocial = [...profile.redes];
-    updatedSocial[index] = { ...updatedSocial[index], ...updates };
-    // Lógica para limitar redes visibles según el plan (ajusta según tus planes)
-    const visibleCount = updatedSocial.filter(s => s.visible !== false).length;
-    if (profile.plan === 'LaTXuWc7Ad9aSK3JdUts' && visibleCount > 3 && updates.visible) {
-      alert('Con el plan básico solo puedes tener 3 redes sociales visibles. Actualiza tu plan para agregar más.');
-      return;
+  const updateSocial = async (index: number, updates: Partial<{ url: string; visible: boolean }>) => {
+    if (!profile || !profile.redes) throw new Error('No profile or redes to update');
+    setIsLoading(true);
+    try {
+      const updatedSocial = [...profile.redes];
+      updatedSocial[index] = { ...updatedSocial[index], ...updates };
+      const visibleCount = updatedSocial.filter(s => s.visible !== false).length;
+      if (profile.plan === 'LaTXuWc7Ad9aSK3JdUts' && visibleCount > 3 && updates.visible) {
+        throw new Error('Con el plan básico solo puedes tener 3 redes sociales visibles. Actualiza tu plan para agregar más.');
+      }
+      const updatedProfile = { ...profile, redes: updatedSocial };
+      setProfile(updatedProfile);
+      await updateAuthProfile(profile.uid, { redes: updatedSocial }, 'user');
+    } catch (error) {
+      console.error('[ProfileContext] Error al actualizar red social:', error);
+      setProfile(profile); // Revertimos el cambio optimista
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
-    const updatedProfile = { ...profile, redes: updatedSocial };
-    setProfile(updatedProfile);
-    updateAuthProfile(profile.uid, { redes: updatedSocial }, 'user');
   };
 
   return (
-    <ProfileContext.Provider value={{ profile, updateProfile, updateSocial }}>
+    <ProfileContext.Provider value={{ profile, updateProfile, updateSocial, isLoading }}>
       {children}
     </ProfileContext.Provider>
   );

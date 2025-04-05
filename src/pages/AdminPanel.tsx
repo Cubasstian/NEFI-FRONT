@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Users,
   CreditCard,
   BarChart2,
-  Settings,
   Search,
   Filter,
   ChevronDown,
@@ -13,12 +12,11 @@ import {
   CheckCircle,
   XCircle,
   Plus,
-  Save,
   X
 } from 'lucide-react';
 import { usePlanStore } from '@/store/plan/usePlanStore';
 import { useAuthStore } from "@/store/auth/userAuthStore";
-import { Plan as PlanType } from '@/types';
+import { Plan as PlanType, UserData } from '@/types';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -33,24 +31,15 @@ interface Stat {
   icon: JSX.Element;
 }
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  plan: string;
-  status: string;
-  createdAt: string;
-  lastLogin: string;
-}
-
 const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState<'users' | 'subscriptions' | 'analytics' | 'plans' | 'settings'>('users');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [sortBy, setSortBy] = useState<keyof User>('createdAt');
+  const [sortBy, setSortBy] = useState<keyof UserData>('nombre');
   const { plans, fetchPlans, updatePlan, addPlan, deletePlan } = usePlanStore();
+  const { allUsers, fetchAllProfiles, deleteProfile, updateProfile } = useAuthStore();
   const [editingPlan, setEditingPlan] = useState<PlanType | null>(null);
   const [editedFeatures, setEditedFeatures] = useState<Feature[]>([]);
-  const [isCreatingPlan, setIsCreatingPlan] = useState(false);
+  const [isCreatingPlanModalOpen, setIsCreatingPlanModalOpen] = useState(false);
   const [newPlan, setNewPlan] = useState<Omit<PlanType, 'id'>>({
     nombre: '',
     precio: '',
@@ -58,10 +47,24 @@ const AdminPanel = () => {
     cta: '',
     popular: false,
   });
+  const [editingUser, setEditingUser] = useState<UserData | null>(null);
+  const [isEditingUserModalOpen, setIsEditingUserModalOpen] = useState(false);
 
-  useEffect(() => {
+  const memoizedFetchPlans = useCallback(() => {
     fetchPlans();
   }, [fetchPlans]);
+
+  const memoizedFetchAllProfiles = useCallback(() => {
+    fetchAllProfiles();
+  }, [fetchAllProfiles]);
+
+  useEffect(() => {
+    memoizedFetchPlans();
+    memoizedFetchAllProfiles();
+
+    console.log("Plans (después de fetch):", plans);
+    console.log("All Users:", allUsers);
+  }, [memoizedFetchPlans, memoizedFetchAllProfiles]);
 
   const handleEditPlan = (plan: PlanType) => {
     setEditingPlan(plan);
@@ -100,9 +103,9 @@ const AdminPanel = () => {
   const handleCreatePlan = async () => {
     try {
       await addPlan(newPlan);
-      setIsCreatingPlan(false);
+      setIsCreatingPlanModalOpen(false);
       setNewPlan({ nombre: '', precio: '', features: [{ text: '', included: true }], cta: '', popular: false });
-      fetchPlans();
+      memoizedFetchPlans();
       toast.success('Plan creado con éxito');
     } catch (error) {
       console.error("Error al crear el plan:", error);
@@ -120,54 +123,36 @@ const AdminPanel = () => {
     }
   };
 
-  // Mock data
-  const users: User[] = [
-    {
-      id: 1,
-      name: 'María González',
-      email: 'maria@example.com',
-      plan: 'Premium',
-      status: 'active',
-      createdAt: '2023-05-15',
-      lastLogin: '2023-06-10'
-    },
-    {
-      id: 2,
-      name: 'Juan Pérez',
-      email: 'juan@example.com',
-      plan: 'Free',
-      status: 'active',
-      createdAt: '2023-04-20',
-      lastLogin: '2023-06-12'
-    },
-    {
-      id: 3,
-      name: 'Ana Rodríguez',
-      email: 'ana@example.com',
-      plan: 'Premium',
-      status: 'inactive',
-      createdAt: '2023-03-10',
-      lastLogin: '2023-05-01'
-    },
-    {
-      id: 4,
-      name: 'Carlos López',
-      email: 'carlos@example.com',
-      plan: 'Business',
-      status: 'active',
-      createdAt: '2023-06-01',
-      lastLogin: '2023-06-15'
-    },
-    {
-      id: 5,
-      name: 'Laura Martínez',
-      email: 'laura@example.com',
-      plan: 'Premium',
-      status: 'active',
-      createdAt: '2023-02-28',
-      lastLogin: '2023-06-14'
+  const handleEditUser = (user: UserData) => {
+    setEditingUser(user);
+    setIsEditingUserModalOpen(true);
+  };
+
+  const handleUpdateUser = async () => {
+    if (editingUser) {
+      try {
+        await updateProfile(editingUser.uid, editingUser, "user");
+        toast.success('Usuario actualizado con éxito');
+        setIsEditingUserModalOpen(false);
+      } catch (error) {
+        toast.error('Error al actualizar el usuario');
+        console.error("Error al actualizar el usuario:", error);
+      }
     }
-  ];
+  };
+
+  const handleDeleteUser = async (user: UserData) => {
+    const confirmDelete = window.confirm(`¿Seguro que deseas eliminar a ${user.nombre}?`);
+    if (confirmDelete) {
+        try {
+            await deleteProfile(user.uid, "user");
+            toast.success('Usuario eliminado con éxito');
+        } catch (error) {
+            console.error("Error al eliminar el usuario:", error);
+            toast.error('Error al eliminar el usuario');
+        }
+    }
+  };
 
   const stats: Stat[] = [
     { label: 'Total Usuarios', value: 1254, icon: <Users className="h-6 w-6 text-indigo-600" /> },
@@ -175,7 +160,7 @@ const AdminPanel = () => {
     { label: 'Visitas a Perfiles', value: '45.2K', icon: <BarChart2 className="h-6 w-6 text-blue-600" /> }
   ];
 
-  const handleSort = (column: keyof User) => {
+  const handleSort = (column: keyof UserData) => {
     if (sortBy === column) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -184,7 +169,7 @@ const AdminPanel = () => {
     }
   };
 
-  const getSortIcon = (column: keyof User) => {
+  const getSortIcon = (column: keyof UserData) => {
     if (sortBy !== column) return null;
 
     return sortDirection === 'asc' ?
@@ -205,116 +190,83 @@ const AdminPanel = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {stats.map((stat, index) => (
-            <div key={index} className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    {stat.icon}
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        {stat.label}
-                      </dt>
-                      <dd>
-                        <div className="text-lg font-medium text-gray-900">
-                          {stat.value}
-                        </div>
-                      </dd>
-                    </dl>
-                  </div>
+            <div key={index} className="bg-white shadow rounded-lg p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  {stat.icon}
+                </div>
+                <div className="ml-4">
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    {stat.label}
+                  </dt>
+                  <dd className="mt-2 text-2xl font-bold text-gray-900">
+                    {stat.value}
+                  </dd>
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="border-b border-gray-200 mb-6">
-          <nav className="-mb-px flex space-x-8">
+        <div className="mb-8">
+          <nav className="flex space-x-4" aria-label="Tabs">
             <button
               onClick={() => setActiveTab('users')}
-              className={`${activeTab === 'users'
-                ? 'border-indigo-500 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+              className={`${activeTab === 'users' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-100'} px-3 py-2 font-medium text-sm rounded-md`}
             >
-              <Users className="h-5 w-5 mr-2" />
               Usuarios
             </button>
-            <button
+            {/* <button
               onClick={() => setActiveTab('subscriptions')}
-              className={`${activeTab === 'subscriptions'
-                ? 'border-indigo-500 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+              className={`${activeTab === 'subscriptions' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-100'} px-3 py-2 font-medium text-sm rounded-md`}
             >
-              <CreditCard className="h-5 w-5 mr-2" />
               Suscripciones
-            </button>
-            <button
+            </button> */}
+            {/* <button
               onClick={() => setActiveTab('analytics')}
-              className={`${activeTab === 'analytics'
-                ? 'border-indigo-500 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+              className={`${activeTab === 'analytics' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-100'} px-3 py-2 font-medium text-sm rounded-md`}
             >
-              <BarChart2 className="h-5 w-5 mr-2" />
-              Estadísticas
-            </button>
+              Analíticas
+            </button> */}
             <button
               onClick={() => setActiveTab('plans')}
-              className={`${activeTab === 'plans'
-                ? 'border-indigo-500 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+              className={`${activeTab === 'plans' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-100'} px-3 py-2 font-medium text-sm rounded-md`}
             >
-              <BarChart2 className="h-5 w-5 mr-2" />
               Planes
             </button>
             <button
               onClick={() => setActiveTab('settings')}
-              className={`${activeTab === 'settings'
-                ? 'border-indigo-500 text-indigo-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+              className={`${activeTab === 'settings' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-100'} px-3 py-2 font-medium text-sm rounded-md`}
             >
-              <Settings className="h-5 w-5 mr-2" />
-              Configuración
+              Ajustes
             </button>
           </nav>
         </div>
 
-        {activeTab === 'users' && (
+     
+
+        {activeTab === 'users' && allUsers && allUsers.length > 0 && (
           <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-900">Gestión de Usuarios</h3>
-              <div className="flex space-x-3">
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Buscar usuario..."
-                    className="pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
-                <button className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filtrar
-                </button>
+            <div className="flex items-center justify-between px-4 py-3 bg-gray-50">
+              <div className="flex items-center">
+                <Search className="h-5 w-5 text-gray-500" />
+                <input type="text" placeholder="Buscar usuarios..." className="ml-2 border-none focus:ring-0" />
               </div>
+              <button className="flex items-center text-indigo-600">
+                <Filter className="h-5 w-5 mr-1" />
+                Filtrar
+              </button>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center cursor-pointer" onClick={() => handleSort('name')}>
+                      <div className="flex items-center cursor-pointer" onClick={() => handleSort('nombre')}>
                         Usuario
-                        {getSortIcon('name')}
+                        {getSortIcon('nombre')}
                       </div>
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -324,39 +276,33 @@ const AdminPanel = () => {
                       </div>
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center cursor-pointer" onClick={() => handleSort('status')}>
+                      <div className="flex items-center cursor-pointer" onClick={() => handleSort('estado')}>
                         Estado
-                        {getSortIcon('status')}
+                        {getSortIcon('estado')}
                       </div>
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center cursor-pointer" onClick={() => handleSort('createdAt')}>
-                        Fecha Registro
-                        {getSortIcon('createdAt')}
-                      </div>
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center cursor-pointer" onClick={() => handleSort('lastLogin')}>
-                        Último Acceso
-                        {getSortIcon('lastLogin')}
+                      <div className="flex items-center cursor-pointer" onClick={() => handleSort('rol')}>
+                        Rol
+                        {getSortIcon('rol')}
                       </div>
                     </th>
                     <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Acciones
+                      Acciones
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {users.map((user) => (
-                    <tr key={user.id}>
+                  {allUsers.map((user) => (
+                    <tr key={user.uid}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                            <span className="text-indigo-600 font-medium">{user.name.charAt(0)}</span>
+                            <span className="text-indigo-600 font-medium">{user.nombre.charAt(0)}</span>
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                            <div className="text-sm text-gray-500">{user.email}</div>
+                            <div className="text-sm font-medium text-gray-900">{user.nombre}</div>
+                            <div className="text-sm text-gray-500">{user.correo}</div>
                           </div>
                         </div>
                       </td>
@@ -369,28 +315,25 @@ const AdminPanel = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.estado ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                           }`}>
-                          {user.status === 'active' ? (
+                          {user.estado ? (
                             <CheckCircle className="mr-1 h-3 w-3" />
                           ) : (
                             <XCircle className="mr-1 h-3 w-3" />
                           )}
-                          {user.status === 'active' ? 'Activo' : 'Inactivo'}
+                          {user.estado ? 'Activo' : 'Inactivo'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {user.createdAt}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {user.lastLogin}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {user.rol}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
-                          <button className="text-indigo-600 hover:text-indigo-900">
+                          <button onClick={() => handleEditUser(user)} className="text-indigo-600 hover:text-indigo-900">
                             <Edit className="h-4 w-4" />
                           </button>
-                          <button className="text-red-600 hover:text-red-900">
+                          <button onClick={() => handleDeleteUser(user)} className="text-red-600 hover:text-red-900">
                             <Trash className="h-4 w-4" />
                           </button>
                         </div>
@@ -400,47 +343,17 @@ const AdminPanel = () => {
                 </tbody>
               </table>
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-              <div className="text-sm text-gray-700">
-                Mostrando <span className="font-medium">1</span> a <span className="font-medium">5</span> de <span className="font-medium">42</span> resultados
-              </div>
-              <div className="flex space-x-2">
-                <button className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                  Anterior
-                </button>
-                <button className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                  Siguiente
-                </button>
-              </div>
-            </div>
           </div>
         )}
 
-        {activeTab === 'subscriptions' && (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Gestión de Suscripciones</h3>
-            <p className="text-gray-500">Contenido de gestión de suscripciones en desarrollo.</p>
-          </div>
-        )}
+        {activeTab === 'plans' && plans && plans.length > 0 && (
+          <div className="bg-white shadow rounded-lg overflow-hidden p-6">
+            <h2 className="text-lg font-semibold mb-4">Gestión de Planes</h2>
 
-        {activeTab === 'analytics' && (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Estadísticas</h3>
-            <p className="text-gray-500">Contenido de estadísticas en desarrollo.</p>
-          </div>
-        )}
-
-        {activeTab === 'plans' && (
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Planes</h3>
-            <button
-              onClick={() => setIsCreatingPlan(true)}
-              className="inline-flex items-center px-3 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-100 hover:bg-blue-50"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Crear Plan
-            </button>
-            {plans && plans.length > 0 ? (
+            <div>
+              <button onClick={() => setIsCreatingPlanModalOpen(true)} className="bg-[#0A2640] text-white px-4 py-2 rounded mb-4">
+                Añadir Nuevo Plan
+              </button>
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -448,7 +361,7 @@ const AdminPanel = () => {
                       Nombre
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Precio
+                      Precio
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Características
@@ -456,206 +369,195 @@ const AdminPanel = () => {
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       CTA
                     </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Popular
+                    </th>
                     <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Acciones
+                      Acciones
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {plans.map((plan) => (
-                    <tr key={plan.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{plan.nombre}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{plan.precio}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <ul className="list-disc list-inside">
-                          {plan.features.map((feature, index) => (
-                            <li key={index} className="text-sm text-gray-500">
-                              {feature.text} {feature.included ? '(Incluido)' : '(No incluido)'}
-                            </li>
-                          ))}
-                        </ul>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{plan.cta}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() => handleEditPlan(plan)}
-                          className="text-indigo-600 hover:text-indigo-900"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeletePlan(String(plan.id))}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <Trash className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {plans && plans.map((plan) => {
+                    console.log("Plan en el map:", plan);
+                    return (
+                      <tr key={plan.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">{plan.nombre}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{plan.precio}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <ul className="list-disc list-inside">
+                            {plan.features.map((feature, index) => (
+                              <li key={index} className={feature.included ? 'text-green-600' : 'text-red-600'}>
+                                {feature.text}
+                              </li>
+                            ))}
+                          </ul>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">{plan.cta}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{plan.popular ? 'Sí' : 'No'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex justify-end space-x-2">
+                            <button onClick={() => handleEditPlan(plan)} className="text-indigo-600 hover:text-indigo-900">
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button onClick={() => handleDeletePlan(String(plan.id))} className="text-red-600 hover:text-red-900">
+                              <Trash className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
-            ) : (
-              <p className="text-gray-500">No hay planes disponibles.</p>
-            )}
-          </div>
-        )}
+            </div>
 
-        {/* Modal para editar planes */}
-        {editingPlan && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center">
-            <div className="bg-white rounded-lg p-6 w-1/2">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Editar Plan</h3>
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={editingPlan.nombre}
-                  onChange={(e) => setEditingPlan({ ...editingPlan, nombre: e.target.value })}
-                  className="border border-gray-300 rounded-md p-2 w-full"
-                />
-                <input
-                  type="text"
-                  value={editingPlan.precio}
-                  onChange={(e) => setEditingPlan({ ...editingPlan, precio: e.target.value })}
-                  className="border border-gray-300 rounded-md p-2 w-full"
-                />
-                <input
-                  type="text"
-                  value={editingPlan.cta}
-                  onChange={(e) => setEditingPlan({ ...editingPlan, cta: e.target.value })}
-                  className="border border-gray-300 rounded-md p-2 w-full"
-                />
-                <ul className="space-y-2">
+            {editingPlan && (
+              <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center">
+                <div className="bg-white rounded-lg p-6 w-1/2">
+                  <h3 className="text-lg font-semibold mb-4">Editar Plan</h3>
+                  <input
+                    type="text"
+                    value={editingPlan.nombre}
+                    onChange={(e) => setEditingPlan({ ...editingPlan, nombre: e.target.value })}
+                    className="border rounded px-3 py-2 mb-2 w-full"
+                  />
+                  <input
+                    type="text"
+                    value={editingPlan.precio}
+                    onChange={(e) => setEditingPlan({ ...editingPlan, precio: e.target.value })}
+                    className="border rounded px-3 py-2 mb-2 w-full"
+                  />
                   {editedFeatures.map((feature, index) => (
-                    <li key={index} className="flex items-center space-x-2">
+                    <div key={index} className="flex items-center mb-2">
                       <input
                         type="text"
                         value={feature.text}
                         onChange={(e) => handleFeatureChange(index, 'text', e.target.value)}
-                        className="border border-gray-300 rounded-md p-1 w-full"
+                        className="border rounded px-3 py-2 flex-grow mr-2"
                       />
-                      <select
-                        value={feature.included.toString()}
-                        onChange={(e) => handleFeatureChange(index, 'included', e.target.value === 'true')}
-                        className="border border-gray-300 rounded-md p-1"
-                      >
-                        <option value="true">Incluido</option>
-                        <option value="false">No incluido</option>
-                      </select>
-                      <button
-                        onClick={() => handleDeleteFeature(index)}
-                        className="text-red-600 hover:text-red-900"
-                      >
+                      <input
+                        type="checkbox"
+                        checked={feature.included}
+                        onChange={(e) => handleFeatureChange(index, 'included', e.target.checked)}
+                        className="mr-2"
+                      />
+                      <button onClick={() => handleDeleteFeature(index)} className="text-red-600">
                         <X className="h-4 w-4" />
                       </button>
-                    </li>
+                    </div>
                   ))}
-                </ul>
-                <button
-                  onClick={handleAddFeature}
-                  className="mt-4 inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Añadir Característica
-                </button>
+                  <button onClick={handleAddFeature} className="text-indigo-600 mb-2">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Añadir Característica
+                  </button>
+                  <input
+                    type="text"
+                    value={editingPlan.cta}
+                    onChange={(e) => setEditingPlan({ ...editingPlan, cta: e.target.value })}
+                    className="border rounded px-3 py-2 mb-2 w-full"
+                  />
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={editingPlan.popular}
+                      onChange={(e) => setEditingPlan({ ...editingPlan, popular: e.target.checked })}
+                      className="mr-2"
+                    />
+                    Popular
+                  </label>
+                  <div className="flex justify-end">
+                    <button onClick={handleSavePlan} className="bg-indigo-600 text-white px-4 py-2 rounded">
+                      Guardar
+                    </button>
+                    <button onClick={() => setEditingPlan(null)} className="ml-2 px-4 py-2">
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="mt-4 flex justify-end space-x-2">
-                <button
-                  onClick={handleSavePlan}
-                  className="px-3 py-2 border border-green-300 rounded-md text-sm font-medium text-green-700 bg-green-100 hover:bg-green-500"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  Guardar
-                </button>
-                <button
-                  onClick={() => setEditingPlan(null)}
-                  className="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
+            )}
           </div>
         )}
 
-        {/* Modal para crear planes */}
-        {isCreatingPlan && (
+        {/* Modal para Crear Nuevo Plan */}
+        {isCreatingPlanModalOpen && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center">
             <div className="bg-white rounded-lg p-6 w-1/2">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Crear Nuevo Plan</h3>
-              <div className="space-y-2">
+              <h3 className="text-lg font-semibold mb-4">Crear Nuevo Plan</h3>
+              <input
+                type="text"
+                placeholder="Nombre del Plan"
+                value={newPlan.nombre}
+                onChange={(e) => setNewPlan({ ...newPlan, nombre: e.target.value })}
+                className="border rounded px-3 py-2 mb-2 w-full"
+              />
+              <input
+                type="text"
+                placeholder="Precio"
+                value={newPlan.precio}
+                onChange={(e) => setNewPlan({ ...newPlan, precio: e.target.value })}
+                className="border rounded px-3 py-2 mb-2 w-full"
+              />
+              {newPlan.features.map((feature, index) => (
+                <div key={index} className="flex items-center mb-2">
+                  <input
+                    type="text"
+                    placeholder="Característica"
+                    value={feature.text}
+                    onChange={(e) => {
+                      const updatedFeatures = [...newPlan.features];
+                      updatedFeatures[index].text = e.target.value;
+                      setNewPlan({ ...newPlan, features: updatedFeatures });
+                    }}
+                    className="border rounded px-3 py-2 flex-grow mr-2"
+                  />
+                  <input
+                    type="checkbox"
+                    checked={feature.included}
+                    onChange={(e) => {
+                      const updatedFeatures = [...newPlan.features];
+                      updatedFeatures[index].included = e.target.checked;
+                      setNewPlan({ ...newPlan, features: updatedFeatures });
+                    }}
+                    className="mr-2"
+                  />
+                  <button
+                    onClick={() => {
+                      const updatedFeatures = newPlan.features.filter((_, i) => i !== index);
+                      setNewPlan({ ...newPlan, features: updatedFeatures });
+                    }}
+                    className="text-red-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+              <button onClick={() => setNewPlan({ ...newPlan, features: [...newPlan.features, { text: '', included: true }] })} className="text-indigo-600 mb-2">
+                <Plus className="h-4 w-4 mr-1" />
+                Añadir Característica
+              </button>
+              <input
+                type="text"
+                placeholder="CTA"
+                value={newPlan.cta}
+                onChange={(e) => setNewPlan({ ...newPlan, cta: e.target.value })}
+                className="border rounded px-3 py-2 mb-2 w-full"
+              />
+              <label className="flex items-center">
                 <input
-                  type="text"
-                  placeholder="Nombre del plan"
-                  value={newPlan.nombre}
-                  onChange={(e) => setNewPlan({ ...newPlan, nombre: e.target.value })}
-                  className="border border-gray-300 rounded-md p-2 w-full"
+                  type="checkbox"
+                  checked={newPlan.popular}
+                  onChange={(e) => setNewPlan({ ...newPlan, popular: e.target.checked })}
+                  className="mr-2"
                 />
-                <input
-                  type="text"
-                  placeholder="Precio"
-                  value={newPlan.precio}
-                  onChange={(e) => setNewPlan({ ...newPlan, precio: e.target.value })}
-                  className="border border-gray-300 rounded-md p-2 w-full"
-                />
-                <input
-                  type="text"
-                  placeholder="CTA"
-                  value={newPlan.cta}
-                  onChange={(e) => setNewPlan({ ...newPlan, cta: e.target.value })}
-                  className="border border-gray-300 rounded-md p-2 w-full"
-                />
-                <ul className="space-y-2">
-                  {newPlan.features.map((feature, index) => (
-                    <li key={index} className="flex items-center space-x-2">
-                      <input
-                        type="text"
-                        value={feature.text}
-                        onChange={(e) => setNewPlan({ ...newPlan, features: newPlan.features.map((f, i) => i === index ? { ...f, text: e.target.value } : f) })}
-                        className="border border-gray-300 rounded-md p-1 w-full"
-                      />
-                      <select
-                        value={feature.included.toString()}
-                        onChange={(e) => setNewPlan({ ...newPlan, features: newPlan.features.map((f, i) => i === index ? { ...f, included: e.target.value === 'true' } : f) })}
-                        className="border border-gray-300 rounded-md p-1"
-                      >
-                        <option value="true">Incluido</option>
-                        <option value="false">No incluido</option>
-                      </select>
-                      <button
-                        onClick={() => setNewPlan({ ...newPlan, features: newPlan.features.filter((_, i) => i !== index) })}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  onClick={() => setNewPlan({ ...newPlan, features: [...newPlan.features, { text: '', included: true }] })}
-                  className="mt-4 inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Añadir Característica
+                Popular
+              </label>
+              <div className="flex justify-end">
+                <button onClick={handleCreatePlan} className="bg-indigo-600 text-white px-4 py-2 rounded">
+                  Crear Plan
                 </button>
-              </div>
-              <div className="mt-4 flex justify-end space-x-2">
-                <button
-                  onClick={handleCreatePlan}
-                  className="px-3 py-2 border border-green-300 rounded-md text-sm font-medium text-green-700 bg-green-100 hover:bg-green-500"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  Guardar
-                </button>
-                <button
-                  onClick={() => setIsCreatingPlan(false)}
-                  className="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                >
+                <button onClick={() => setIsCreatingPlanModalOpen(false)} className="ml-2 px-4 py-2">
                   Cancelar
                 </button>
               </div>
@@ -663,7 +565,60 @@ const AdminPanel = () => {
           </div>
         )}
 
-        {/* ... (resto del contenido) ... */}
+        {/* Modal para Editar Usuario */}
+        {isEditingUserModalOpen && editingUser && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center">
+            <div className="bg-white rounded-lg p-6 w-1/2">
+              <h3 className="text-lg font-semibold mb-4">Editar Usuario</h3>
+              <input
+                type="text"
+                value={editingUser.nombre}
+                onChange={(e) => setEditingUser({ ...editingUser, nombre: e.target.value })}
+                className="border rounded px-3 py-2 mb-2 w-full"
+              />
+              <input
+                type="text"
+                value={editingUser.correo}
+                onChange={(e) => setEditingUser({ ...editingUser, correo: e.target.value })}
+                className="border rounded px-3 py-2 mb-2 w-full"
+              />
+              <select
+                value={editingUser.plan}
+                onChange={(e) => setEditingUser({ ...editingUser, plan: e.target.value })}
+                className="border rounded px-3 py-2 mb-2 w-full"
+              >
+                <option value="Basic">Basic</option>
+                <option value="Premium">Premium</option>
+                <option value="Business">Business</option>
+              </select>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={editingUser.estado}
+                  onChange={(e) => setEditingUser({ ...editingUser, estado: e.target.checked })}
+                  className="mr-2"
+                />
+                Activo
+              </label>
+              <select
+                value={editingUser.rol}
+                onChange={(e) => setEditingUser({ ...editingUser, rol: e.target.value as 'ADMIN' | 'USER' })}
+                className="border rounded px-3 py-2 mb-2 w-full"
+              >
+                <option value="ADMIN">ADMIN</option>
+                <option value="USER">USER</option>
+              </select>
+              <div className="flex justify-end">
+                <button onClick={handleUpdateUser} className="bg-indigo-600 text-white px-4 py-2 rounded">
+                  Guardar
+                </button>
+                <button onClick={() => setIsEditingUserModalOpen(false)} className="ml-2 px-4 py-2">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

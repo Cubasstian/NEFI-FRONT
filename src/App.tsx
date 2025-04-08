@@ -28,9 +28,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean 
     pageview(location.pathname);
   }, [location]);
 
-  if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
-  }
+  // if (isLoading) {
+  //   return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
+  // }
 
   if (!user) {
     return <Navigate to="/login" replace />;
